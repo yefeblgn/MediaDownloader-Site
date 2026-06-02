@@ -1,0 +1,12 @@
+@{
+    ViewData["Title"] = "Hata";
+}
+
+<section class="max-w-md mx-auto px-4 sm:px-6 pt-24 pb-10 text-center">
+    <div class="glass rounded-3xl p-10 animate-fade-up">
+        <div class="text-6xl mb-4">😵</div>
+        <h1 class="font-display font-extrabold text-2xl">Bir şeyler ters gitti</h1>
+        <p class="mt-2 text-slate-400">İsteğin işlenirken beklenmeyen bir hata oluştu. Lütfen tekrar dene.</p>
+        <a asp-controller="Home" asp-action="Index" class="inline-block mt-6 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 transition">Ana sayfaya dön</a>
+    </div>
+</section>

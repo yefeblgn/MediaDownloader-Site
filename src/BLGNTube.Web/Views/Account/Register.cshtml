@@ -1,0 +1,58 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Kayıt Ol";
+}
+
+<section class="max-w-md mx-auto px-4 sm:px-6 pt-16 pb-10">
+    <div class="glass rounded-3xl p-7 sm:p-8 shadow-2xl shadow-black/40 animate-fade-up">
+        <div class="text-center mb-6">
+            <h1 class="font-display font-extrabold text-3xl">Aramıza katıl 🚀</h1>
+            <p class="mt-2 text-slate-400 text-sm">Ücretsiz hesap · günde <span class="text-brand-400 font-semibold">100 indirme</span> · indirme geçmişi.</p>
+        </div>
+
+        <form asp-controller="Account" asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="space-y-4">
+            <div asp-validation-summary="ModelOnly" class="text-danger text-sm"></div>
+
+            <div>
+                <label asp-for="DisplayName" class="text-sm text-slate-300"></label>
+                <input asp-for="DisplayName" autocomplete="nickname"
+                       class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition" />
+                <span asp-validation-for="DisplayName"></span>
+            </div>
+
+            <div>
+                <label asp-for="Email" class="text-sm text-slate-300"></label>
+                <input asp-for="Email" autocomplete="email"
+                       class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition" />
+                <span asp-validation-for="Email"></span>
+            </div>
+
+            <div>
+                <label asp-for="Password" class="text-sm text-slate-300"></label>
+                <input asp-for="Password" autocomplete="new-password"
+                       class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition" />
+                <span asp-validation-for="Password"></span>
+            </div>
+
+            <div>
+                <label asp-for="ConfirmPassword" class="text-sm text-slate-300"></label>
+                <input asp-for="ConfirmPassword" autocomplete="new-password"
+                       class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition" />
+                <span asp-validation-for="ConfirmPassword"></span>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 shadow-lg shadow-brand-500/30 transition active:scale-[.99]">
+                Hesap Oluştur
+            </button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-slate-400">
+            Zaten hesabın var mı?
+            <a asp-controller="Account" asp-action="Login" class="text-brand-400 hover:text-brand-300 font-medium">Giriş yap</a>
+        </p>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

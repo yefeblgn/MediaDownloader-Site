@@ -1,0 +1,148 @@
+@{
+    ViewData["Title"] = "Medya İndir";
+    var remaining = (int)(ViewBag.Remaining ?? 0);
+    var limit = (int)(ViewBag.Limit ?? 0);
+    var isAuth = (bool)(ViewBag.IsAuthenticated ?? false);
+}
+
+<section class="max-w-6xl mx-auto px-4 sm:px-6 pt-14 sm:pt-20 pb-10">
+    <div class="text-center max-w-3xl mx-auto animate-fade-up">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-white/5 border border-white/10 text-slate-300 mb-5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            YouTube · TikTok · Twitter · Reddit · ve yüzlerce site
+        </span>
+        <h1 class="font-display font-extrabold text-4xl sm:text-6xl leading-tight tracking-tight">
+            Her şeyi <span class="bg-gradient-to-r from-brand-400 via-fuchsia-400 to-brand-500 bg-clip-text text-transparent">indir</span>,<br class="hidden sm:block" /> MP3 veya MP4 olarak.
+        </h1>
+        <p class="mt-5 text-slate-300 text-lg">
+            Bağlantıyı yapıştır, kaliteyi seç, saniyeler içinde yüksek kalitede indir.
+        </p>
+    </div>
+
+    <!-- İndirme kartı -->
+    <div class="mt-10 max-w-3xl mx-auto animate-fade-up" style="animation-delay:.1s">
+        <div class="glass rounded-3xl p-5 sm:p-7 shadow-2xl shadow-black/40">
+
+            <!-- Kota rozeti -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2 text-sm">
+                    <svg class="w-4 h-4 text-brand-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    <span class="text-slate-300">Bugünkü hakkın:</span>
+                    <span id="quotaRemaining" class="font-semibold text-white">@remaining</span>
+                    <span class="text-slate-500">/ @limit</span>
+                </div>
+                @if (!isAuth)
+                {
+                    <a asp-controller="Account" asp-action="Register" class="text-xs text-brand-400 hover:text-brand-300 font-medium">Hesap aç → 100/gün</a>
+                }
+            </div>
+
+            <!-- URL girişi -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-1">
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    <input id="urlInput" type="url" inputmode="url" autocomplete="off" spellcheck="false"
+                           placeholder="Bir bağlantı yapıştır (https://...)"
+                           class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition placeholder:text-slate-500" />
+                </div>
+                <button id="fetchBtn" type="button"
+                        class="px-5 py-3.5 rounded-xl font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 shadow-lg shadow-brand-500/30 transition active:scale-[.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    <span class="btn-label">Getir</span>
+                    <span class="btn-spinner hidden w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                </button>
+            </div>
+
+            <!-- Hata mesajı -->
+            <div id="errorBox" class="hidden mt-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm"></div>
+
+            <!-- Önizleme + format seçimi -->
+            <div id="previewPanel" class="hidden mt-5 animate-fade-up">
+                <div class="flex gap-4 p-4 rounded-2xl bg-black/20 border border-white/10">
+                    <img id="thumb" alt="" class="w-32 h-20 sm:w-40 sm:h-24 object-cover rounded-xl bg-white/5 shrink-0" />
+                    <div class="min-w-0 flex-1">
+                        <h3 id="mediaTitle" class="font-semibold text-white line-clamp-2"></h3>
+                        <p class="mt-1 text-sm text-slate-400 flex items-center gap-3 flex-wrap">
+                            <span id="mediaSite" class="px-2 py-0.5 rounded-md bg-white/5 text-xs"></span>
+                            <span id="mediaUploader" class="truncate"></span>
+                            <span id="mediaDuration" class="text-slate-500"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Format -->
+                <div class="mt-4 grid grid-cols-2 gap-3">
+                    <button type="button" data-format="mp4" class="format-btn is-active flex items-center gap-3 px-4 py-3 rounded-xl bg-black/30 border border-white/10 transition">
+                        <svg class="w-6 h-6 text-brand-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></svg>
+                        <div class="text-left"><div class="font-semibold">MP4 Video</div><div class="text-xs text-slate-400">Görüntü + ses</div></div>
+                    </button>
+                    <button type="button" data-format="mp3" class="format-btn flex items-center gap-3 px-4 py-3 rounded-xl bg-black/30 border border-white/10 transition">
+                        <svg class="w-6 h-6 text-fuchsia-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                        <div class="text-left"><div class="font-semibold">MP3 Ses</div><div class="text-xs text-slate-400">320 kbps</div></div>
+                    </button>
+                </div>
+
+                <!-- Kalite (sadece MP4) -->
+                <div id="qualityWrap" class="mt-3">
+                    <label class="text-sm text-slate-400">Video kalitesi</label>
+                    <select id="qualitySelect" class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 outline-none transition"></select>
+                </div>
+
+                <button id="downloadBtn" type="button"
+                        class="mt-4 w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/30 transition active:scale-[.99] flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
+                    İndir
+                </button>
+            </div>
+
+            <!-- İlerleme -->
+            <div id="progressPanel" class="hidden mt-5 animate-fade-up">
+                <div class="flex items-center justify-between text-sm mb-2">
+                    <span id="progressLabel" class="text-slate-300">Hazırlanıyor…</span>
+                    <span id="progressPct" class="font-semibold text-white">0%</span>
+                </div>
+                <div class="h-3 rounded-full bg-black/40 overflow-hidden">
+                    <div id="progressBar" class="h-full w-0 rounded-full bg-gradient-to-r from-brand-500 to-fuchsia-500 transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <!-- Tamamlandı -->
+            <div id="readyPanel" class="hidden mt-5 animate-fade-up">
+                <div class="flex items-center gap-3 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
+                    <svg class="w-8 h-8 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.8 10A10 10 0 1 1 17 3.3"/><path d="m9 11 3 3L22 4"/></svg>
+                    <div class="min-w-0 flex-1">
+                        <div class="font-semibold text-white">Hazır!</div>
+                        <div id="readyMeta" class="text-sm text-slate-400 truncate"></div>
+                    </div>
+                    <a id="saveBtn" href="#" class="px-4 py-2.5 rounded-xl font-semibold bg-emerald-500 hover:bg-emerald-600 text-white transition shrink-0">Kaydet</a>
+                </div>
+                <button id="resetBtn" type="button" class="mt-3 w-full py-2.5 rounded-xl text-sm text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 transition">Yeni indirme</button>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Özellikler -->
+<section class="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+    <div class="grid sm:grid-cols-3 gap-4">
+        <div class="glass rounded-2xl p-6 animate-fade-up">
+            <div class="w-11 h-11 grid place-items-center rounded-xl bg-brand-500/20 text-brand-400 mb-4"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+            <h3 class="font-semibold text-lg">Yüksek hız & kalite</h3>
+            <p class="mt-1 text-sm text-slate-400">4K'ya kadar video, 320 kbps ses. yt-dlp motoruyla en iyi kaynak otomatik seçilir.</p>
+        </div>
+        <div class="glass rounded-2xl p-6 animate-fade-up" style="animation-delay:.1s">
+            <div class="w-11 h-11 grid place-items-center rounded-xl bg-fuchsia-500/20 text-fuchsia-400 mb-4"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.5 1 6 2.5"/><path d="M21 3v6h-6"/></svg></div>
+            <h3 class="font-semibold text-lg">Yüzlerce site</h3>
+            <p class="mt-1 text-sm text-slate-400">YouTube, TikTok, Twitter/X, Reddit, Instagram, Facebook ve daha fazlası tek yerde.</p>
+        </div>
+        <div class="glass rounded-2xl p-6 animate-fade-up" style="animation-delay:.2s">
+            <div class="w-11 h-11 grid place-items-center rounded-xl bg-emerald-500/20 text-emerald-400 mb-4"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+            <h3 class="font-semibold text-lg">Geçmiş & profil</h3>
+            <p class="mt-1 text-sm text-slate-400">Hesabınla indirdiklerini ve kalan günlük hakkını profilinden takip et.</p>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/download.js" asp-append-version="true"></script>
+}

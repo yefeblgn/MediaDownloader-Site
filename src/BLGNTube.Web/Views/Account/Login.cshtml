@@ -1,0 +1,49 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Giriş Yap";
+}
+
+<section class="max-w-md mx-auto px-4 sm:px-6 pt-16 pb-10">
+    <div class="glass rounded-3xl p-7 sm:p-8 shadow-2xl shadow-black/40 animate-fade-up">
+        <div class="text-center mb-6">
+            <h1 class="font-display font-extrabold text-3xl">Tekrar hoş geldin 👋</h1>
+            <p class="mt-2 text-slate-400 text-sm">Günde 100 indirme hakkın seni bekliyor.</p>
+        </div>
+
+        <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="space-y-4">
+            <div asp-validation-summary="ModelOnly" class="text-danger text-sm"></div>
+
+            <div>
+                <label asp-for="Email" class="text-sm text-slate-300"></label>
+                <input asp-for="Email" autocomplete="email"
+                       class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition" />
+                <span asp-validation-for="Email"></span>
+            </div>
+
+            <div>
+                <label asp-for="Password" class="text-sm text-slate-300"></label>
+                <input asp-for="Password" autocomplete="current-password"
+                       class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition" />
+                <span asp-validation-for="Password"></span>
+            </div>
+
+            <label class="flex items-center gap-2 text-sm text-slate-300 select-none cursor-pointer">
+                <input asp-for="RememberMe" class="w-4 h-4 rounded accent-brand-500" />
+                <span>@Html.DisplayNameFor(m => m.RememberMe)</span>
+            </label>
+
+            <button type="submit" class="w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 shadow-lg shadow-brand-500/30 transition active:scale-[.99]">
+                Giriş Yap
+            </button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-slate-400">
+            Hesabın yok mu?
+            <a asp-controller="Account" asp-action="Register" class="text-brand-400 hover:text-brand-300 font-medium">Kayıt ol</a>
+        </p>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
