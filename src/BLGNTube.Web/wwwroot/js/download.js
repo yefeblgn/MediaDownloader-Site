@@ -1,4 +1,5 @@
-// BLGNTube — indirme arayüzü
+// BLGNTube — indirme arayüzü akışı
+// Adımlar: URL incele -> format/kalite seç -> job başlat -> ilerlemeyi izle -> dosyayı kaydet
 (() => {
     'use strict';
 
@@ -28,34 +29,35 @@
     const progressBar    = $('progressBar');
     const progressPct    = $('progressPct');
     const progressLabel  = $('progressLabel');
+    const saveBtn        = $('saveBtn');
     const resetBtn       = $('resetBtn');
     const quotaRemaining = $('quotaRemaining');
 
-    let selectedFormat      = 'mp4';
-    let pollTimer           = null;
-    let fakeTimer           = null;
-    let fakePercent         = 0;
-    let realProgressStarted = false;
+    let selectedFormat       = 'mp4';
+    let pollTimer            = null;
+    let fakeTimer            = null;
+    let fakePercent          = 0;
+    let realProgressStarted  = false;
 
     // --- Yardımcılar ---
     function showError(msg) {
         errorBox.textContent = msg;
-        errorBox.style.display = '';
+        errorBox.classList.remove('hidden');
     }
-    function clearError() { errorBox.style.display = 'none'; errorBox.textContent = ''; }
+    function clearError() { errorBox.classList.add('hidden'); errorBox.textContent = ''; }
 
     function setBusy(btn, busy) {
         const label = btn.querySelector('.btn-label');
         const spin  = btn.querySelector('.btn-spinner');
         btn.disabled = busy;
         if (label && spin) {
-            label.style.display = busy ? 'none' : '';
-            spin.style.display  = busy ? '' : 'none';
+            label.classList.toggle('hidden', busy);
+            spin.classList.toggle('hidden', !busy);
         }
     }
 
-    function hide(...els) { els.forEach(e => { if (e) e.style.display = 'none'; }); }
-    function show(...els) { els.forEach(e => { if (e) e.style.display = ''; }); }
+    function hide(...els) { els.forEach(e => e.classList.add('hidden')); }
+    function show(...els) { els.forEach(e => e.classList.remove('hidden')); }
 
     async function postJson(url, body) {
         const res  = await fetch(url, {
@@ -67,20 +69,14 @@
         return { ok: res.ok, status: res.status, data };
     }
 
-    // --- Reklam tetikleyici ---
-    function triggerAd(slot) {
-        if (window.ADS && typeof window.ADS.trigger === 'function') {
-            window.ADS.trigger(slot);
-        }
-    }
-
-    // --- Sahte ilerleme ---
+    // --- Sahte ilerleme (gerçek veri gelene kadar görsel geri bildirim) ---
     function startSimulatedProgress() {
         realProgressStarted = false;
         fakePercent = 2;
         progressBar.classList.add('is-indeterminate');
         setProgress(fakePercent, T.starting);
         fakeTimer = setInterval(() => {
+            // Başta hızlı, %82'ye yaklaştıkça yavaşlar
             const gap = 82 - fakePercent;
             fakePercent += Math.max(0.15, gap * 0.04) * (0.7 + Math.random() * 0.6);
             fakePercent = Math.min(82, fakePercent);
@@ -98,9 +94,6 @@
         const url = urlInput.value.trim();
         clearError();
         if (!url) { showError(T.paste); return; }
-
-        // Reklam — Bul tuşu
-        triggerAd('fetch');
 
         setBusy(fetchBtn, true);
         hide(previewPanel, progressPanel, readyPanel);
@@ -145,9 +138,6 @@
         const url     = urlInput.value.trim();
         const quality = selectedFormat === 'mp4' ? qualitySelect.value : null;
 
-        // Reklam — İndir tuşu
-        triggerAd('download');
-
         hide(previewPanel, readyPanel);
         show(progressPanel);
         startSimulatedProgress();
@@ -172,7 +162,7 @@
         pollStatus(data.jobId);
     }
 
-    // label null ise etiket güncellenmez
+    // label null ise etiket güncellenmez (sahte timer yalnızca yüzdeyi iter)
     function setProgress(pct, label) {
         progressBar.style.width = Math.max(2, pct) + '%';
         progressPct.textContent = Math.round(pct) + '%';
@@ -210,7 +200,7 @@
                     clearInterval(pollTimer);
                     stopSimulatedProgress();
                     setProgress(100, T.completed);
-                    setTimeout(() => onReady(jobId, job), 400);
+                    setTimeout(() => onReady(jobId, job), 350);
                     break;
 
                 case 'Failed':
@@ -228,22 +218,12 @@
         showError(msg);
     }
 
-    // --- 4. Hazır — otomatik indir ---
+    // --- 4. Hazır ---
     function onReady(jobId, job) {
-        // Tarayıcıya otomatik indir
-        const a = document.createElement('a');
-        a.href = '/api/download/file/' + jobId;
-        a.download = '';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        // Progress paneli gizle, "tamamlandı + yeni indirme" göster
         hide(progressPanel);
         const sizeMb = job.fileSizeBytes ? (job.fileSizeBytes / 1048576).toFixed(1) + ' MB' : '';
-        const readyMeta = $('readyMeta');
-        if (readyMeta) readyMeta.textContent = [job.title, sizeMb].filter(Boolean).join(' · ');
+        $('readyMeta').textContent = [job.title, sizeMb].filter(Boolean).join(' · ');
+        saveBtn.href = '/api/download/file/' + jobId;
         show(readyPanel);
         readyPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -261,5 +241,5 @@
     fetchBtn.addEventListener('click', fetchInfo);
     urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchInfo(); });
     downloadBtn.addEventListener('click', startDownload);
-    if (resetBtn) resetBtn.addEventListener('click', reset);
+    resetBtn.addEventListener('click', reset);
 })();

@@ -16,7 +16,7 @@
   "home.quota.today": "Bugünkü hakkın:",
   "home.quota.register_cta": "Hesap aç → 100/gün",
   "home.url.placeholder": "Bir bağlantı yapıştır (https://...)",
-  "home.fetch": "Bul",
+  "home.fetch": "Getir",
   "home.format.mp4": "MP4 Video",
   "home.format.mp4.sub": "Görüntü + ses",
   "home.format.mp3": "MP3 Ses",
@@ -87,7 +87,7 @@
   "about.limits.anon": "Üye olmayanlar: günde 10 indirme (IP başına).",
   "about.limits.member": "Ücretsiz üyeler: günde 100 indirme + indirme geçmişi.",
   "about.cta": "Hemen indirmeye başla",
-  "about.legal": "Tüm Hakları Saklıdır.",
+  "about.legal": "BLGNTube eğitim amaçlı bir projedir ve açık kaynaklı yt-dlp motorunu kullanır. Yalnızca yasal olarak indirme hakkına sahip olduğunuz içerikleri indirin.",
 
   "admin.title": "Yönetim Paneli",
   "admin.subtitle": "Site istatistikleri ve yönetim.",
