@@ -87,6 +87,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Nginx gibi reverse proxy arkasında çalışırken X-Forwarded-* başlıklarını oku.
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+                     | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+});
+
 // --- İstek yerelleştirme (dil çerezine göre kültür ayarla) ---
 var supportedCultures = new[] { new CultureInfo("tr"), new CultureInfo("en") };
 var defaultCulture = builder.Configuration["DEFAULT_CULTURE"] is "en" ? "en" : "tr";

@@ -3,7 +3,6 @@
 (() => {
     'use strict';
 
-    // Yerelleştirilmiş metinler (sayfada window.LOC olarak gömülür); yedekler Türkçe.
     const T = Object.assign({
         starting: 'İndirme başlatılıyor…',
         downloading: 'İndiriliyor…',
@@ -18,24 +17,27 @@
 
     const $ = (id) => document.getElementById(id);
 
-    const urlInput = $('urlInput');
-    const fetchBtn = $('fetchBtn');
-    const errorBox = $('errorBox');
-    const previewPanel = $('previewPanel');
-    const progressPanel = $('progressPanel');
-    const readyPanel = $('readyPanel');
-    const downloadBtn = $('downloadBtn');
-    const qualityWrap = $('qualityWrap');
-    const qualitySelect = $('qualitySelect');
-    const progressBar = $('progressBar');
-    const progressPct = $('progressPct');
-    const progressLabel = $('progressLabel');
-    const saveBtn = $('saveBtn');
-    const resetBtn = $('resetBtn');
+    const urlInput       = $('urlInput');
+    const fetchBtn       = $('fetchBtn');
+    const errorBox       = $('errorBox');
+    const previewPanel   = $('previewPanel');
+    const progressPanel  = $('progressPanel');
+    const readyPanel     = $('readyPanel');
+    const downloadBtn    = $('downloadBtn');
+    const qualityWrap    = $('qualityWrap');
+    const qualitySelect  = $('qualitySelect');
+    const progressBar    = $('progressBar');
+    const progressPct    = $('progressPct');
+    const progressLabel  = $('progressLabel');
+    const saveBtn        = $('saveBtn');
+    const resetBtn       = $('resetBtn');
     const quotaRemaining = $('quotaRemaining');
 
-    let selectedFormat = 'mp4';
-    let pollTimer = null;
+    let selectedFormat       = 'mp4';
+    let pollTimer            = null;
+    let fakeTimer            = null;
+    let fakePercent          = 0;
+    let realProgressStarted  = false;
 
     // --- Yardımcılar ---
     function showError(msg) {
@@ -46,7 +48,7 @@
 
     function setBusy(btn, busy) {
         const label = btn.querySelector('.btn-label');
-        const spin = btn.querySelector('.btn-spinner');
+        const spin  = btn.querySelector('.btn-spinner');
         btn.disabled = busy;
         if (label && spin) {
             label.classList.toggle('hidden', busy);
@@ -58,13 +60,33 @@
     function show(...els) { els.forEach(e => e.classList.remove('hidden')); }
 
     async function postJson(url, body) {
-        const res = await fetch(url, {
+        const res  = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
         const data = await res.json().catch(() => ({}));
         return { ok: res.ok, status: res.status, data };
+    }
+
+    // --- Sahte ilerleme (gerçek veri gelene kadar görsel geri bildirim) ---
+    function startSimulatedProgress() {
+        realProgressStarted = false;
+        fakePercent = 2;
+        progressBar.classList.add('is-indeterminate');
+        setProgress(fakePercent, T.starting);
+        fakeTimer = setInterval(() => {
+            // Başta hızlı, %82'ye yaklaştıkça yavaşlar
+            const gap = 82 - fakePercent;
+            fakePercent += Math.max(0.15, gap * 0.04) * (0.7 + Math.random() * 0.6);
+            fakePercent = Math.min(82, fakePercent);
+            setProgress(fakePercent, null);
+        }, 350);
+    }
+
+    function stopSimulatedProgress() {
+        if (fakeTimer) { clearInterval(fakeTimer); fakeTimer = null; }
+        progressBar.classList.remove('is-indeterminate');
     }
 
     // --- 1. Medyayı incele ---
@@ -83,16 +105,15 @@
 
         $('thumb').src = data.thumbnailUrl || '';
         $('thumb').style.display = data.thumbnailUrl ? '' : 'none';
-        $('mediaTitle').textContent = data.title || 'Başlıksız';
-        $('mediaSite').textContent = data.siteName || 'Medya';
+        $('mediaTitle').textContent    = data.title    || 'Başlıksız';
+        $('mediaSite').textContent     = data.siteName || 'Medya';
         $('mediaUploader').textContent = data.uploader || '';
         $('mediaDuration').textContent = data.duration && data.duration !== '—' ? '⏱ ' + data.duration : '';
 
-        // Kalite seçeneklerini doldur
         qualitySelect.innerHTML = '';
         (data.qualities || []).forEach(q => {
             const opt = document.createElement('option');
-            opt.value = q.height;
+            opt.value       = q.height;
             opt.textContent = q.label;
             qualitySelect.appendChild(opt);
         });
@@ -114,18 +135,19 @@
     // --- 2. İndirmeyi başlat ---
     async function startDownload() {
         clearError();
-        const url = urlInput.value.trim();
+        const url     = urlInput.value.trim();
         const quality = selectedFormat === 'mp4' ? qualitySelect.value : null;
 
         hide(previewPanel, readyPanel);
         show(progressPanel);
-        setProgress(0, T.starting);
+        startSimulatedProgress();
 
         const { ok, status, data } = await postJson('/api/download/start', {
             url, format: selectedFormat, quality
         });
 
         if (!ok) {
+            stopSimulatedProgress();
             hide(progressPanel);
             show(previewPanel);
             showError(data.error || T.startFailed);
@@ -140,10 +162,11 @@
         pollStatus(data.jobId);
     }
 
+    // label null ise etiket güncellenmez (sahte timer yalnızca yüzdeyi iter)
     function setProgress(pct, label) {
         progressBar.style.width = Math.max(2, pct) + '%';
         progressPct.textContent = Math.round(pct) + '%';
-        if (label) progressLabel.textContent = label;
+        if (label != null) progressLabel.textContent = label;
     }
 
     // --- 3. Durumu izle ---
@@ -151,23 +174,38 @@
         clearInterval(pollTimer);
         pollTimer = setInterval(async () => {
             const res = await fetch('/api/download/status/' + jobId);
-            if (!res.ok) { clearInterval(pollTimer); showFailure(T.notFound); return; }
+            if (!res.ok) {
+                clearInterval(pollTimer);
+                stopSimulatedProgress();
+                showFailure(T.notFound);
+                return;
+            }
             const job = await res.json();
 
             switch (job.state) {
                 case 'Downloading':
-                    setProgress(job.progress, T.downloading);
+                    if (job.progress > 1 && !realProgressStarted) {
+                        realProgressStarted = true;
+                        stopSimulatedProgress();
+                    }
+                    if (realProgressStarted) setProgress(job.progress, T.downloading);
                     break;
+
                 case 'Processing':
+                    stopSimulatedProgress();
                     setProgress(Math.max(job.progress, 99), T.converting);
                     break;
+
                 case 'Completed':
                     clearInterval(pollTimer);
+                    stopSimulatedProgress();
                     setProgress(100, T.completed);
                     setTimeout(() => onReady(jobId, job), 350);
                     break;
+
                 case 'Failed':
                     clearInterval(pollTimer);
+                    stopSimulatedProgress();
                     showFailure(job.error || T.failed);
                     break;
             }
@@ -193,6 +231,7 @@
     // --- Sıfırla ---
     function reset() {
         clearError();
+        stopSimulatedProgress();
         hide(progressPanel, readyPanel, previewPanel);
         urlInput.value = '';
         urlInput.focus();
