@@ -1,0 +1,110 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "Profilim";
+    var pct = Model.DailyLimit > 0 ? (int)Math.Round(100.0 * Model.UsedToday / Model.DailyLimit) : 0;
+}
+
+<section class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-10">
+
+    <!-- Başlık -->
+    <div class="flex items-center gap-4 animate-fade-up">
+        <div class="grid place-items-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-fuchsia-500 text-white text-2xl font-display font-bold shadow-lg shadow-brand-500/30">
+            @(string.IsNullOrEmpty(Model.DisplayName) ? "?" : Model.DisplayName.Trim()[0].ToString().ToUpper())
+        </div>
+        <div>
+            <h1 class="font-display font-extrabold text-2xl sm:text-3xl">@Model.DisplayName</h1>
+            <p class="text-slate-400 text-sm">@Model.Email · Üyelik: @Model.MemberSince.ToLocalTime().ToString("dd.MM.yyyy")</p>
+        </div>
+    </div>
+
+    <!-- İstatistik kartları -->
+    <div class="mt-8 grid sm:grid-cols-3 gap-4">
+        <!-- Kalan hak -->
+        <div class="glass rounded-2xl p-6 flex items-center gap-5 animate-fade-up">
+            <div class="relative w-20 h-20 shrink-0">
+                <svg class="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="3"></circle>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="url(#g)" stroke-width="3" stroke-linecap="round"
+                            stroke-dasharray="@pct, 100"></circle>
+                    <defs>
+                        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#f43f5e"></stop>
+                            <stop offset="100%" stop-color="#d946ef"></stop>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span class="absolute inset-0 grid place-items-center text-sm font-bold">@Model.Remaining</span>
+            </div>
+            <div>
+                <div class="text-sm text-slate-400">Bugün kalan hak</div>
+                <div class="text-2xl font-bold">@Model.Remaining<span class="text-slate-500 text-base"> / @Model.DailyLimit</span></div>
+                <div class="text-xs text-slate-500 mt-1">Gece yarısı (UTC) sıfırlanır</div>
+            </div>
+        </div>
+
+        <!-- Bugünkü indirme -->
+        <div class="glass rounded-2xl p-6 animate-fade-up" style="animation-delay:.05s">
+            <div class="text-sm text-slate-400">Bugün indirilen</div>
+            <div class="mt-2 text-3xl font-bold">@Model.UsedToday</div>
+            <div class="text-xs text-slate-500 mt-1">Günlük limit: @Model.DailyLimit</div>
+        </div>
+
+        <!-- Toplam -->
+        <div class="glass rounded-2xl p-6 animate-fade-up" style="animation-delay:.1s">
+            <div class="text-sm text-slate-400">Toplam indirme</div>
+            <div class="mt-2 text-3xl font-bold">@Model.TotalDownloads</div>
+            <div class="text-xs text-slate-500 mt-1">Tüm zamanlar</div>
+        </div>
+    </div>
+
+    <!-- Geçmiş -->
+    <div class="mt-10 animate-fade-up">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="font-display font-bold text-xl">İndirme geçmişi</h2>
+            <a asp-controller="Home" asp-action="Index" class="text-sm text-brand-400 hover:text-brand-300 font-medium">+ Yeni indirme</a>
+        </div>
+
+        @if (Model.History.Count == 0)
+        {
+            <div class="glass rounded-2xl p-10 text-center text-slate-400">
+                <p class="text-lg">Henüz hiçbir şey indirmedin.</p>
+                <a asp-controller="Home" asp-action="Index" class="inline-block mt-4 px-5 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 transition">Hadi başla →</a>
+            </div>
+        }
+        else
+        {
+            <div class="space-y-3">
+                @foreach (var item in Model.History)
+                {
+                    <div class="glass rounded-2xl p-4 flex items-center gap-4 hover:bg-white/[.06] transition">
+                        <div class="w-24 h-14 rounded-lg bg-black/30 overflow-hidden shrink-0 grid place-items-center">
+                            @if (!string.IsNullOrEmpty(item.ThumbnailUrl))
+                            {
+                                <img src="@item.ThumbnailUrl" alt="" class="w-full h-full object-cover" loading="lazy" />
+                            }
+                            else
+                            {
+                                <svg class="w-6 h-6 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></svg>
+                            }
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="font-medium truncate">@item.Title</div>
+                            <div class="text-xs text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
+                                <span class="px-2 py-0.5 rounded bg-white/5">@item.SiteName</span>
+                                <span class="px-2 py-0.5 rounded @(item.Format == MediaFormat.Mp3 ? "bg-fuchsia-500/20 text-fuchsia-300" : "bg-brand-500/20 text-brand-300")">
+                                    @(item.Format == MediaFormat.Mp3 ? "MP3" : "MP4")@(string.IsNullOrEmpty(item.Quality) ? "" : " · " + item.Quality)
+                                </span>
+                                <span>@item.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
+                                @if (item.FileSizeBytes > 0)
+                                {
+                                    <span class="text-slate-500">@((item.FileSizeBytes / 1048576.0).ToString("0.0")) MB</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <p class="mt-4 text-xs text-slate-500 text-center">Not: İndirilen dosyalar sunucuda saklanmaz; bu liste yalnızca geçmiş kaydıdır.</p>
+        }
+    </div>
+</section>

@@ -1,0 +1,24 @@
+# Build sonuçları
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+
+# SQLite veritabanı (uygulama çalışınca oluşur)
+*.db
+*.db-shm
+*.db-wal
+
+# İndirilen geçici medya dosyaları
+src/BLGNTube.Web/wwwroot/downloads/*
+!src/BLGNTube.Web/wwwroot/downloads/.gitkeep
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
