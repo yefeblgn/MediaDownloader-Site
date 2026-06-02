@@ -1,123 +1,202 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @{
-    var isSignedIn = SignInManager.IsSignedIn(User);
+    var isSignedIn  = SignInManager.IsSignedIn(User);
     var displayName = isSignedIn ? (await UserManager.GetUserAsync(User))?.DisplayName : null;
-    var isAdmin = User.IsInRole("Admin");
-    var curCulture = Loc.CurrentCulture;
-    var returnPath = $"{Context.Request.Path}{Context.Request.QueryString}";
+    var isAdmin     = User.IsInRole("Admin");
+    var curCulture  = Loc.CurrentCulture;
+    var returnPath  = $"{Context.Request.Path}{Context.Request.QueryString}";
+
+    // Baş harf avatar — "Yiğit Efe" → "YE", "yefeblgN" → "Y"
+    var initials = "";
+    if (!string.IsNullOrWhiteSpace(displayName))
+    {
+        var parts = displayName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        initials  = parts.Length >= 2
+            ? $"{char.ToUpper(parts[0][0])}{char.ToUpper(parts[1][0])}"
+            : char.ToUpper(parts[0][0]).ToString();
+    }
 }
 <!DOCTYPE html>
-<html lang="@curCulture" class="scroll-smooth">
+<html lang="@curCulture">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - BLGNTube</title>
-    <meta name="description" content="BLGNTube — YouTube, TikTok, Twitter, Reddit ve yüzlerce siteden MP3/MP4 medya indirme aracı." />
+    <title>@ViewData["Title"] — BLGNTube</title>
+    <meta name="description" content="YouTube, TikTok, Instagram ve yüzlerce platformdan yüksek kalitede MP4 ve MP3 indir." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                        display: ['Poppins', 'system-ui', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#fff1f2', 100: '#ffe4e6', 400: '#fb7185',
-                            500: '#f43f5e', 600: '#e11d48', 700: '#be123c',
-                        },
-                    },
-                    keyframes: {
-                        'fade-up': { '0%': { opacity: 0, transform: 'translateY(16px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
-                        'float': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
-                    },
-                    animation: {
-                        'fade-up': 'fade-up .6s ease-out both',
-                        'float': 'float 6s ease-in-out infinite',
-                    },
-                },
-            },
-        };
-    </script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif']}}}};</script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body { font-family:'Inter',system-ui,sans-serif; }
+        @@media(max-width:639px){ .sm-hide{display:none!important;} }
+        @@media(min-width:640px){ .sm-show{display:none!important;} }
+    </style>
+    <!-- Monetag scriptleri body'de dinamik yüklenir (adblock tespiti için) -->
 </head>
-<body class="bg-[#0b0b14] text-slate-100 font-sans antialiased min-h-screen flex flex-col overflow-x-hidden">
+<body style="background:#0e0e12;color:#f4f4f5;min-height:100vh;display:flex;flex-direction:column;">
 
-    <!-- Animasyonlu gradient arka plan -->
-    <div class="aurora" aria-hidden="true">
-        <span class="blob blob-1"></span>
-        <span class="blob blob-2"></span>
-        <span class="blob blob-3"></span>
-    </div>
+    <!-- ── Navbar ───────────────────────────────────────────── -->
+    <header style="position:sticky;top:0;z-index:50;background:#0e0e12;border-bottom:1px solid rgba(255,255,255,0.07);">
+        <nav style="max-width:1100px;margin:0 auto;padding:0 1.25rem;height:56px;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
 
-    <header class="sticky top-0 z-40">
-        <nav class="backdrop-blur-xl bg-white/5 border-b border-white/10">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                <a asp-controller="Home" asp-action="Index" class="flex items-center gap-2 group">
-                    <span class="grid place-items-center w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-fuchsia-500 shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform">
-                        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
-                    </span>
-                    <span class="font-display font-extrabold text-xl tracking-tight">BLGN<span class="text-brand-500">Tube</span></span>
-                </a>
+            <!-- Logo -->
+            <a asp-controller="Home" asp-action="Index"
+               style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;flex-shrink:0;">
+                <span style="width:30px;height:30px;background:var(--accent);border-radius:7px;display:grid;place-items:center;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
+                </span>
+                <span style="font-weight:700;font-size:1rem;color:#f4f4f5;letter-spacing:-0.01em;">BLGN<span style="color:var(--accent);">Tube</span></span>
+            </a>
 
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <a asp-controller="Home" asp-action="About" class="hidden sm:inline-block px-3 py-2 text-sm text-slate-300 hover:text-white transition">@Loc["nav.how"]</a>
+            <!-- Sağ taraf -->
+            <div style="display:flex;align-items:center;gap:0.375rem;">
 
-                    <!-- Dil değiştirici -->
-                    <div class="flex items-center rounded-lg bg-white/5 border border-white/10 overflow-hidden text-xs font-semibold">
-                        <a asp-controller="Culture" asp-action="Set" asp-route-culture="tr" asp-route-returnUrl="@returnPath"
-                           class="px-2.5 py-1.5 transition @(curCulture == "tr" ? "bg-brand-500 text-white" : "text-slate-300 hover:text-white")">TR</a>
-                        <a asp-controller="Culture" asp-action="Set" asp-route-culture="en" asp-route-returnUrl="@returnPath"
-                           class="px-2.5 py-1.5 transition @(curCulture == "en" ? "bg-brand-500 text-white" : "text-slate-300 hover:text-white")">EN</a>
-                    </div>
+                <!-- Nasıl çalışır — sadece desktop -->
+                <a asp-controller="Home" asp-action="About" class="nav-link sm-hide">@Loc["nav.how"]</a>
 
-                    @if (isAdmin)
-                    {
-                        <a asp-controller="Admin" asp-action="Index" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 7.7 8 10 4.6-2.3 8-5 8-10V6z"/></svg>
-                            @Loc["nav.admin"]
-                        </a>
-                    }
-                    @if (isSignedIn)
-                    {
-                        <a asp-controller="Profile" asp-action="Index" class="px-3 py-2 rounded-lg text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 transition flex items-center gap-2">
-                            <svg class="w-4 h-4 text-brand-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-                            <span class="max-w-[8rem] truncate">@displayName</span>
-                        </a>
-                        <form asp-controller="Account" asp-action="Logout" method="post" class="inline">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="px-3 py-2 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/5 transition">@Loc["nav.logout"]</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <a asp-controller="Account" asp-action="Login" class="px-3 py-2 rounded-lg text-sm text-slate-200 hover:text-white transition">@Loc["nav.login"]</a>
-                        <a asp-controller="Account" asp-action="Register" class="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 shadow-lg shadow-brand-500/30 transition">@Loc["nav.register"]</a>
-                    }
-                </div>
+                @if (isAdmin)
+                {
+                    <!-- Admin butonu -->
+                    <a asp-controller="Admin" asp-action="Index"
+                       style="display:inline-flex;align-items:center;gap:0.375rem;padding:0.35rem 0.625rem;border-radius:var(--radius);font-size:0.8125rem;font-weight:500;background:rgba(245,158,11,0.1);color:#fbbf24;border:1px solid rgba(245,158,11,0.2);text-decoration:none;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 7.7 8 10 4.6-2.3 8-5 8-10V6z"/></svg>
+                        <span class="sm-hide">@Loc["nav.admin"]</span>
+                    </a>
+                }
+
+                @if (isSignedIn)
+                {
+                    <!-- Avatar + isim (desktop) / sadece avatar (mobile) -->
+                    <a asp-controller="Profile" asp-action="Index"
+                       style="display:inline-flex;align-items:center;gap:0.5rem;text-decoration:none;padding:0.25rem 0.375rem;border-radius:var(--radius);transition:background .15s;"
+                       onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                        <!-- Avatar daire -->
+                        <span style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-weight:700;font-size:0.8125rem;color:#fff;flex-shrink:0;letter-spacing:0;">
+                            @initials
+                        </span>
+                        <!-- İsim sadece desktop'ta -->
+                        <span class="sm-hide" style="font-size:0.875rem;font-weight:500;color:var(--text);max-width:7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                            @displayName
+                        </span>
+                    </a>
+
+                    <!-- Çıkış — sadece desktop -->
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;" class="sm-hide">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="nav-link btn" style="font-weight:400;font-size:0.875rem;padding:0.375rem 0.625rem;">@Loc["nav.logout"]</button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="nav-link sm-hide">@Loc["nav.login"]</a>
+                    <a asp-controller="Account" asp-action="Register"
+                       style="display:inline-flex;align-items:center;padding:0.4rem 0.875rem;border-radius:var(--radius);font-size:0.875rem;font-weight:600;background:var(--accent);color:#fff;text-decoration:none;transition:background .15s;white-space:nowrap;"
+                       onmouseover="this.style.background='#e11d48'" onmouseout="this.style.background='var(--accent)'">@Loc["nav.register"]</a>
+                }
             </div>
         </nav>
     </header>
 
-    <main class="flex-1 relative z-10">
+    <main style="flex:1;">
         @RenderBody()
     </main>
 
-    <footer class="relative z-10 border-t border-white/10 mt-16">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
-            <p>© @DateTime.Now.Year <span class="font-display font-bold text-slate-200">BLGNTube</span> — @Loc["footer.copy"]</p>
-            <p class="text-center sm:text-right">@Loc["footer.legal"]</p>
+    <!-- ── Footer ───────────────────────────────────────────── -->
+    <footer style="border-top:1px solid rgba(255,255,255,0.07);margin-top:4rem;">
+        <div style="max-width:1100px;margin:0 auto;padding:1.5rem 1.25rem;display:flex;flex-direction:column;align-items:center;gap:0.875rem;text-align:center;">
+
+            <!-- Dil seçici -->
+            <div class="lang-switcher">
+                <a asp-controller="Culture" asp-action="Set" asp-route-culture="tr" asp-route-returnUrl="@returnPath"
+                   class="lang-btn @(curCulture == "tr" ? "active" : "")">TR</a>
+                <a asp-controller="Culture" asp-action="Set" asp-route-culture="en" asp-route-returnUrl="@returnPath"
+                   class="lang-btn @(curCulture == "en" ? "active" : "")">EN</a>
+            </div>
+
+            <p style="font-size:0.8125rem;color:var(--text3);margin:0;">
+                © @DateTime.Now.Year <strong style="color:var(--text2);font-weight:600;">BLGNTube</strong> — @Loc["footer.copy"]
+            </p>
+            <p style="font-size:0.75rem;color:var(--text3);margin:0;">@Loc["footer.legal"]</p>
         </div>
     </footer>
 
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/ads.js" asp-append-version="true"></script>
+    <script>
+    (function(){
+        var W='__adbwall', TICK=700, _on=false;
+
+        function buildWall(){
+            if(document.getElementById(W))return;
+            var d=document.createElement('div');
+            d.id=W;
+            d.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(14,14,18,0.97);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.25rem;font-family:Inter,system-ui,sans-serif;color:#f4f4f5;text-align:center;padding:2rem';
+            d.innerHTML='<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>'
+                +'<div style="max-width:420px"><h2 style="font-size:1.375rem;font-weight:700;letter-spacing:-0.02em;margin:0 0 0.625rem">Reklam Engelleyici Tespit Edildi</h2>'
+                +'<p style="font-size:0.9375rem;color:#a1a1aa;line-height:1.65;margin:0">Bu site tamamen ücretsiz, reklamlarla ayakta duruyor.<br>Lütfen <strong style="color:#f4f4f5">reklam engelleyicini devre dışı bırak</strong> ve sayfayı yenile.</p></div>'
+                +'<button onclick="location.reload()" style="padding:0.8rem 2.25rem;border-radius:8px;background:#f43f5e;color:#fff;font-weight:600;font-size:0.9375rem;border:none;cursor:pointer" onmouseover="this.style.background=\'#e11d48\'" onmouseout="this.style.background=\'#f43f5e\'">Kapattım, Devam Et</button>'
+                +'<p style="font-size:0.75rem;color:#3f3f46">tube.yefeblgn.net</p>';
+            document.body.appendChild(d);
+            document.documentElement.style.overflow='hidden';
+            document.body.style.overflow='hidden';
+        }
+
+        function activate(){
+            if(_on)return; _on=true;
+            buildWall();
+            new MutationObserver(function(){
+                if(!document.getElementById(W))buildWall();
+                document.documentElement.style.overflow='hidden';
+                document.body.style.overflow='hidden';
+            }).observe(document.body,{childList:true});
+            setInterval(function(){
+                if(!document.getElementById(W))buildWall();
+                document.documentElement.style.overflow='hidden';
+                document.body.style.overflow='hidden';
+            },TICK);
+        }
+
+        // ── Yöntem 1: DOM bait ──────────────────────────────────────────
+        // Adblock'lar ".adsbox" gibi sınıflara display:none uygular.
+        // Brave, uBlock, ABP hepsi bu CSS cosmetic filtrelerini kullanır.
+        // Tarayıcı built-in koruması ile extension farkı yapmaz.
+        var bait=document.createElement('div');
+        bait.className='pub_300x250 pub_300x250m adsbox doubleclick ad-placement carbon-ads textAd';
+        bait.style.cssText='width:1px!important;height:1px!important;position:absolute!important;left:-9999px!important;top:-9999px!important;pointer-events:none!important;';
+        document.body.appendChild(bait);
+        // 600ms bekle — mobil tarayıcılar CSS filtrelerini geç uygulayabilir
+        setTimeout(function(){
+            var cs=window.getComputedStyle(bait);
+            var blocked=bait.offsetHeight===0||bait.offsetWidth===0||
+                         bait.offsetParent===null||
+                         cs.display==='none'||cs.visibility==='hidden'||cs.opacity==='0';
+            try{bait.parentNode&&bait.parentNode.removeChild(bait);}catch(e){}
+            if(blocked)activate();
+        },600);
+
+        // ── Yöntem 2: Script onerror ────────────────────────────────────
+        // Extension tabanlı adblock'lar için ek güvence.
+        // Brave/mobil: boş 200 dönebilir → onload tetiklenir, activate() çağrılmaz.
+        // Bu yüzden bu yöntem yalnızca onerror'u dinler, onload'u görmezden gelir.
+        var s1=document.createElement('script');
+        s1.src='https://5gvci.com/act/files/tag.min.js?z=11092004&_='+Date.now();
+        s1.setAttribute('data-cfasync','false');
+        s1.onerror=activate; // başarılı load → duvar yok, reklam çalışır
+        document.body.appendChild(s1);
+
+        // ── In-Page Push ────────────────────────────────────────────────
+        var s2=document.createElement('script');
+        s2.dataset.zone='11092005';
+        s2.src='https://nap5k.com/tag.min.js?_='+Date.now();
+        document.body.appendChild(s2);
+    })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
