@@ -145,18 +145,17 @@
 
 @section Scripts {
     <script>
-        // download.js'in kullandığı yerelleştirilmiş metinler
-        window.LOC = {
-            starting: "@Loc["js.starting"]",
-            downloading: "@Loc["js.downloading"]",
-            converting: "@Loc["js.converting"]",
-            completed: "@Loc["js.completed"]",
-            paste: "@Loc["js.paste"]",
-            infoFailed: "@Loc["js.info_failed"]",
-            startFailed: "@Loc["js.start_failed"]",
-            notFound: "@Loc["js.not_found"]",
-            failed: "@Loc["js.failed"]"
-        };
+        window.LOC = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string> {
+            ["starting"]    = Loc["js.starting"],
+            ["downloading"] = Loc["js.downloading"],
+            ["converting"]  = Loc["js.converting"],
+            ["completed"]   = Loc["js.completed"],
+            ["paste"]       = Loc["js.paste"],
+            ["infoFailed"]  = Loc["js.info_failed"],
+            ["startFailed"] = Loc["js.start_failed"],
+            ["notFound"]    = Loc["js.not_found"],
+            ["failed"]      = Loc["js.failed"]
+        }));
     </script>
     <script src="~/js/download.js" asp-append-version="true"></script>
 }

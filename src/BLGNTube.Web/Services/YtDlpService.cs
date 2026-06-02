@@ -162,10 +162,11 @@ public class YtDlpService
         else
         {
             // İstenen yüksekliğe kadar en iyi video+ses, MP4'te birleştir.
+            // H.264 (avc1) öncelikli: Windows Media Player ve çoğu oynatıcı AV1/VP9'u desteklemez.
             var height = ParseHeight(job.Quality);
             var format = height > 0
-                ? $"bv*[height<={height}]+ba/b[height<={height}]/bv*+ba/b"
-                : "bv*+ba/b";
+                ? $"bv*[height<={height}][vcodec^=avc]+ba/bv*[height<={height}]+ba/b[height<={height}]/bv*+ba/b"
+                : "bv*[vcodec^=avc]+ba/bv*+ba/b";
             args.AddRange(new[]
             {
                 "-f", format,

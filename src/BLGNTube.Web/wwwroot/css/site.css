@@ -114,3 +114,23 @@ html, body {
 ::selection {
     background: rgba(244, 63, 94, 0.35);
 }
+
+/* Progress bar shimmer — indirme başlarken */
+@keyframes progress-shine {
+    0%   { background-position: 200% center; }
+    100% { background-position: -200% center; }
+}
+
+#progressBar.is-indeterminate {
+    background: linear-gradient(
+        90deg,
+        #f43f5e 0%,
+        #d946ef 30%,
+        rgba(255, 255, 255, 0.75) 50%,
+        #d946ef 70%,
+        #f43f5e 100%
+    ) !important;
+    background-size: 200% auto !important;
+    animation: progress-shine 1.2s linear infinite;
+    transition: width 300ms ease;
+}
