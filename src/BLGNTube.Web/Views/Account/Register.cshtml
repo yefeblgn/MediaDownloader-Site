@@ -1,54 +1,73 @@
 @model RegisterViewModel
 @{
-    ViewData["Title"] = "Kayıt Ol";
+    ViewData["Title"] = Loc["auth.register.submit"];
+    var externalSchemes = ViewData["ExternalSchemes"] as List<AuthenticationScheme> ?? new();
 }
 
 <section class="max-w-md mx-auto px-4 sm:px-6 pt-16 pb-10">
     <div class="glass rounded-3xl p-7 sm:p-8 shadow-2xl shadow-black/40 animate-fade-up">
         <div class="text-center mb-6">
-            <h1 class="font-display font-extrabold text-3xl">Aramıza katıl 🚀</h1>
-            <p class="mt-2 text-slate-400 text-sm">Ücretsiz hesap · günde <span class="text-brand-400 font-semibold">100 indirme</span> · indirme geçmişi.</p>
+            <h1 class="font-display font-extrabold text-3xl">@Loc["auth.register.title"]</h1>
+            <p class="mt-2 text-slate-400 text-sm">@Loc["auth.register.subtitle"]</p>
         </div>
+
+        @if (externalSchemes.Any())
+        {
+            <form asp-controller="Account" asp-action="ExternalLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="space-y-2">
+                @foreach (var scheme in externalSchemes)
+                {
+                    <button type="submit" name="provider" value="@scheme.Name"
+                            class="w-full py-3 rounded-xl font-semibold bg-white text-slate-800 hover:bg-slate-100 transition flex items-center justify-center gap-3 active:scale-[.99]">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.47 14.97.5 12 .5A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 4.75 12 4.75z"/></svg>
+                        @Loc["auth.google"]
+                    </button>
+                }
+            </form>
+
+            <div class="flex items-center gap-3 my-5 text-xs text-slate-500">
+                <span class="flex-1 h-px bg-white/10"></span>@Loc["auth.or"]<span class="flex-1 h-px bg-white/10"></span>
+            </div>
+        }
 
         <form asp-controller="Account" asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="space-y-4">
             <div asp-validation-summary="ModelOnly" class="text-danger text-sm"></div>
 
             <div>
-                <label asp-for="DisplayName" class="text-sm text-slate-300"></label>
+                <label asp-for="DisplayName" class="text-sm text-slate-300">@Loc["auth.field.displayname"]</label>
                 <input asp-for="DisplayName" autocomplete="nickname"
                        class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition" />
                 <span asp-validation-for="DisplayName"></span>
             </div>
 
             <div>
-                <label asp-for="Email" class="text-sm text-slate-300"></label>
+                <label asp-for="Email" class="text-sm text-slate-300">@Loc["auth.field.email"]</label>
                 <input asp-for="Email" autocomplete="email"
                        class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition" />
                 <span asp-validation-for="Email"></span>
             </div>
 
             <div>
-                <label asp-for="Password" class="text-sm text-slate-300"></label>
+                <label asp-for="Password" class="text-sm text-slate-300">@Loc["auth.field.password"]</label>
                 <input asp-for="Password" autocomplete="new-password"
                        class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition" />
                 <span asp-validation-for="Password"></span>
             </div>
 
             <div>
-                <label asp-for="ConfirmPassword" class="text-sm text-slate-300"></label>
+                <label asp-for="ConfirmPassword" class="text-sm text-slate-300">@Loc["auth.field.confirm"]</label>
                 <input asp-for="ConfirmPassword" autocomplete="new-password"
                        class="mt-1 w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none transition" />
                 <span asp-validation-for="ConfirmPassword"></span>
             </div>
 
             <button type="submit" class="w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 shadow-lg shadow-brand-500/30 transition active:scale-[.99]">
-                Hesap Oluştur
+                @Loc["auth.register.submit"]
             </button>
         </form>
 
         <p class="mt-6 text-center text-sm text-slate-400">
-            Zaten hesabın var mı?
-            <a asp-controller="Account" asp-action="Login" class="text-brand-400 hover:text-brand-300 font-medium">Giriş yap</a>
+            @Loc["auth.register.have_account"]
+            <a asp-controller="Account" asp-action="Login" class="text-brand-400 hover:text-brand-300 font-medium">@Loc["auth.login.link"]</a>
         </p>
     </div>
 </section>

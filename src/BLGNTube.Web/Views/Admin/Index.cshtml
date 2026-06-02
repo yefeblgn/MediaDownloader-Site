@@ -1,0 +1,159 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = Loc["admin.title"];
+    var maxSite = Model.TopSites.Count > 0 ? Model.TopSites.Max(s => s.Count) : 1;
+}
+
+<section class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-10">
+    <div class="flex items-center gap-3 animate-fade-up">
+        <span class="grid place-items-center w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 7.7 8 10 4.6-2.3 8-5 8-10V6z"/></svg>
+        </span>
+        <div>
+            <h1 class="font-display font-extrabold text-2xl sm:text-3xl">@Loc["admin.title"]</h1>
+            <p class="text-slate-400 text-sm">@Loc["admin.subtitle"]</p>
+        </div>
+    </div>
+
+    <!-- İstatistikler -->
+    <div class="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        @{
+            var stats = new (string label, int val, string color)[]
+            {
+                (Loc["admin.stat.users"], Model.TotalUsers, "text-brand-400"),
+                (Loc["admin.stat.downloads"], Model.TotalDownloads, "text-fuchsia-400"),
+                (Loc["admin.stat.today"], Model.DownloadsToday, "text-emerald-400"),
+                (Loc["admin.stat.anon_today"], Model.AnonymousToday, "text-amber-400"),
+            };
+        }
+        @foreach (var s in stats)
+        {
+            <div class="glass rounded-2xl p-5 animate-fade-up">
+                <div class="text-sm text-slate-400">@s.label</div>
+                <div class="mt-1 text-3xl font-bold @s.color">@s.val</div>
+            </div>
+        }
+    </div>
+
+    <div class="mt-8 grid lg:grid-cols-3 gap-6">
+        <!-- En çok indirilen siteler -->
+        <div class="glass rounded-2xl p-6 animate-fade-up">
+            <h2 class="font-display font-bold text-lg mb-4">@Loc["admin.topsites"]</h2>
+            @if (Model.TopSites.Count == 0)
+            {
+                <p class="text-slate-500 text-sm">@Loc["admin.empty"]</p>
+            }
+            else
+            {
+                <div class="space-y-3">
+                    @foreach (var site in Model.TopSites)
+                    {
+                        <div>
+                            <div class="flex justify-between text-sm mb-1"><span>@site.SiteName</span><span class="text-slate-400">@site.Count</span></div>
+                            <div class="h-2 rounded-full bg-black/40 overflow-hidden">
+                                <div class="h-full rounded-full bg-gradient-to-r from-brand-500 to-fuchsia-500" style="width:@(Math.Max(4, site.Count * 100 / maxSite))%"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Kullanıcılar -->
+        <div class="glass rounded-2xl p-6 animate-fade-up lg:col-span-2 overflow-x-auto">
+            <h2 class="font-display font-bold text-lg mb-4">@Loc["admin.users"]</h2>
+            <table class="w-full text-sm">
+                <thead class="text-slate-400 text-left">
+                    <tr class="border-b border-white/10">
+                        <th class="py-2 pr-3 font-medium">@Loc["admin.col.name"]</th>
+                        <th class="py-2 pr-3 font-medium">@Loc["admin.col.email"]</th>
+                        <th class="py-2 pr-3 font-medium">@Loc["admin.col.role"]</th>
+                        <th class="py-2 pr-3 font-medium text-right">@Loc["admin.col.downloads"]</th>
+                        <th class="py-2 font-medium text-right">@Loc["admin.col.actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model.Users)
+                    {
+                        <tr class="border-b border-white/5">
+                            <td class="py-2 pr-3 font-medium">@u.DisplayName</td>
+                            <td class="py-2 pr-3 text-slate-400 truncate max-w-[12rem]">@u.Email</td>
+                            <td class="py-2 pr-3">
+                                @if (u.IsAdmin)
+                                {
+                                    <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-xs">@Loc["admin.role.admin"]</span>
+                                }
+                                else
+                                {
+                                    <span class="px-2 py-0.5 rounded bg-white/5 text-slate-300 text-xs">@Loc["admin.role.user"]</span>
+                                }
+                            </td>
+                            <td class="py-2 pr-3 text-right">@u.DownloadCount</td>
+                            <td class="py-2 text-right">
+                                @if (u.Id != Model.CurrentUserId)
+                                {
+                                    <form asp-controller="Admin" asp-action="ToggleAdmin" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@u.Id" />
+                                        <button type="submit" class="text-xs px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition">
+                                            @(u.IsAdmin ? Loc["admin.action.remove_admin"] : Loc["admin.action.make_admin"])
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-xs text-slate-600">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Son indirmeler -->
+    <div class="mt-6 glass rounded-2xl p-6 animate-fade-up overflow-x-auto">
+        <h2 class="font-display font-bold text-lg mb-4">@Loc["admin.recent"]</h2>
+        @if (Model.RecentDownloads.Count == 0)
+        {
+            <p class="text-slate-500 text-sm">@Loc["admin.empty"]</p>
+        }
+        else
+        {
+            <table class="w-full text-sm">
+                <thead class="text-slate-400 text-left">
+                    <tr class="border-b border-white/10">
+                        <th class="py-2 pr-3 font-medium">@Loc["admin.col.title"]</th>
+                        <th class="py-2 pr-3 font-medium">@Loc["admin.col.format"]</th>
+                        <th class="py-2 pr-3 font-medium">@Loc["admin.col.user"]</th>
+                        <th class="py-2 pr-3 font-medium">@Loc["admin.col.date"]</th>
+                        <th class="py-2 font-medium text-right">@Loc["admin.col.actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.RecentDownloads)
+                    {
+                        <tr class="border-b border-white/5">
+                            <td class="py-2 pr-3 max-w-[18rem] truncate">@r.Title</td>
+                            <td class="py-2 pr-3">
+                                <span class="px-2 py-0.5 rounded text-xs @(r.Format == MediaFormat.Mp3 ? "bg-fuchsia-500/20 text-fuchsia-300" : "bg-brand-500/20 text-brand-300")">
+                                    @(r.Format == MediaFormat.Mp3 ? "MP3" : "MP4")
+                                </span>
+                            </td>
+                            <td class="py-2 pr-3 text-slate-400">@(r.User?.DisplayName ?? Loc["admin.anonymous"])</td>
+                            <td class="py-2 pr-3 text-slate-400">@r.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                            <td class="py-2 text-right">
+                                <form asp-controller="Admin" asp-action="DeleteRecord" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@r.Id" />
+                                    <button type="submit" class="text-xs px-2.5 py-1 rounded-lg bg-red-500/15 text-red-300 hover:bg-red-500/25 border border-red-500/30 transition">@Loc["admin.action.delete"]</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</section>

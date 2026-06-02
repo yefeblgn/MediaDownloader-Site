@@ -3,9 +3,12 @@
 @{
     var isSignedIn = SignInManager.IsSignedIn(User);
     var displayName = isSignedIn ? (await UserManager.GetUserAsync(User))?.DisplayName : null;
+    var isAdmin = User.IsInRole("Admin");
+    var curCulture = Loc.CurrentCulture;
+    var returnPath = $"{Context.Request.Path}{Context.Request.QueryString}";
 }
 <!DOCTYPE html>
-<html lang="tr" class="scroll-smooth">
+<html lang="@curCulture" class="scroll-smooth">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -65,7 +68,23 @@
                 </a>
 
                 <div class="flex items-center gap-2 sm:gap-3">
-                    <a asp-controller="Home" asp-action="About" class="hidden sm:inline-block px-3 py-2 text-sm text-slate-300 hover:text-white transition">Nasıl Çalışır?</a>
+                    <a asp-controller="Home" asp-action="About" class="hidden sm:inline-block px-3 py-2 text-sm text-slate-300 hover:text-white transition">@Loc["nav.how"]</a>
+
+                    <!-- Dil değiştirici -->
+                    <div class="flex items-center rounded-lg bg-white/5 border border-white/10 overflow-hidden text-xs font-semibold">
+                        <a asp-controller="Culture" asp-action="Set" asp-route-culture="tr" asp-route-returnUrl="@returnPath"
+                           class="px-2.5 py-1.5 transition @(curCulture == "tr" ? "bg-brand-500 text-white" : "text-slate-300 hover:text-white")">TR</a>
+                        <a asp-controller="Culture" asp-action="Set" asp-route-culture="en" asp-route-returnUrl="@returnPath"
+                           class="px-2.5 py-1.5 transition @(curCulture == "en" ? "bg-brand-500 text-white" : "text-slate-300 hover:text-white")">EN</a>
+                    </div>
+
+                    @if (isAdmin)
+                    {
+                        <a asp-controller="Admin" asp-action="Index" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 7.7 8 10 4.6-2.3 8-5 8-10V6z"/></svg>
+                            @Loc["nav.admin"]
+                        </a>
+                    }
                     @if (isSignedIn)
                     {
                         <a asp-controller="Profile" asp-action="Index" class="px-3 py-2 rounded-lg text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 transition flex items-center gap-2">
@@ -74,13 +93,13 @@
                         </a>
                         <form asp-controller="Account" asp-action="Logout" method="post" class="inline">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="px-3 py-2 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/5 transition">Çıkış</button>
+                            <button type="submit" class="px-3 py-2 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/5 transition">@Loc["nav.logout"]</button>
                         </form>
                     }
                     else
                     {
-                        <a asp-controller="Account" asp-action="Login" class="px-3 py-2 rounded-lg text-sm text-slate-200 hover:text-white transition">Giriş</a>
-                        <a asp-controller="Account" asp-action="Register" class="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 shadow-lg shadow-brand-500/30 transition">Kayıt Ol</a>
+                        <a asp-controller="Account" asp-action="Login" class="px-3 py-2 rounded-lg text-sm text-slate-200 hover:text-white transition">@Loc["nav.login"]</a>
+                        <a asp-controller="Account" asp-action="Register" class="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 shadow-lg shadow-brand-500/30 transition">@Loc["nav.register"]</a>
                     }
                 </div>
             </div>
@@ -93,8 +112,8 @@
 
     <footer class="relative z-10 border-t border-white/10 mt-16">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
-            <p>© @DateTime.Now.Year <span class="font-display font-bold text-slate-200">BLGNTube</span> — Eğitim amaçlı proje.</p>
-            <p class="text-center sm:text-right">Yalnızca telif hakkına sahip olduğunuz / izinli içerikleri indirin.</p>
+            <p>© @DateTime.Now.Year <span class="font-display font-bold text-slate-200">BLGNTube</span> — @Loc["footer.copy"]</p>
+            <p class="text-center sm:text-right">@Loc["footer.legal"]</p>
         </div>
     </footer>
 

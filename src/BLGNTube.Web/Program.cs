@@ -1,8 +1,14 @@
+using System.Globalization;
 using BLGNTube.Web.Data;
 using BLGNTube.Web.Models;
 using BLGNTube.Web.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+
+// --- .env dosyasını yükle (gizli anahtarlar, admin hesabı vb.) ---
+// Çalışma dizininden başlayıp üst dizinlerde .env aranır.
+DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +42,22 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
+// --- Google ile giriş (yalnızca .env'de anahtarlar varsa etkin) ---
+var googleClientId = builder.Configuration["GOOGLE_CLIENT_ID"];
+var googleClientSecret = builder.Configuration["GOOGLE_CLIENT_SECRET"];
+if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    builder.Services.AddAuthentication().AddGoogle(options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.SignInScheme = IdentityConstants.ExternalScheme;
+    });
+}
+
+// --- Yerelleştirme (TR / EN) ---
+builder.Services.AddSingleton<LocService>();
+
 // --- Uygulama servisleri ---
 builder.Services.Configure<DownloaderOptions>(
     builder.Configuration.GetSection(DownloaderOptions.SectionName));
@@ -49,11 +71,14 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// --- Veritabanını oluştur (ödev için migration yerine EnsureCreated) ---
+// --- Veritabanını oluştur + admin hesabını ekle ---
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.EnsureCreated();
+
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Seed");
+    await IdentitySeeder.SeedAsync(scope.ServiceProvider, app.Configuration, logger);
 }
 
 if (!app.Environment.IsDevelopment())
@@ -61,6 +86,16 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+// --- İstek yerelleştirme (dil çerezine göre kültür ayarla) ---
+var supportedCultures = new[] { new CultureInfo("tr"), new CultureInfo("en") };
+var defaultCulture = builder.Configuration["DEFAULT_CULTURE"] is "en" ? "en" : "tr";
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture(defaultCulture),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
