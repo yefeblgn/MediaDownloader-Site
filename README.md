@@ -12,7 +12,9 @@ bir medya indirme sitesi. (Eğitim/ödev amaçlı.)
 - 🔗 Tek bir bağlantı ile yüzlerce site desteği (yt-dlp tabanlı)
 - 🎞️ MP4 video (4K'ya kadar, kalite seçimi) ve 🎵 MP3 ses (320 kbps)
 - 📊 Canlı ilerleme çubuğu (arka plan job + durum polling)
-- 👤 Kayıt / giriş (ASP.NET Core Identity)
+- 👤 Kayıt / giriş (ASP.NET Core Identity) + **Google ile giriş** (OAuth 2.0)
+- 🌐 **Türkçe / İngilizce dil geçişi** (navbar'dan, çerez tabanlı)
+- 🛡️ **Admin paneli** (`/admin`): istatistikler, kullanıcı yönetimi, rol verme, kayıt silme
 - ⛔ Günlük indirme limitleri:
   - Üye **olmayanlar**: günde **10** indirme (IP bazlı)
   - **Üyeler**: günde **100** indirme
@@ -60,12 +62,57 @@ yt-dlp --version
 ffmpeg -version
 ```
 
+## 🔐 .env dosyası (Google girişi + admin)
+
+Depo kökünde `.env.example` dosyasını `.env` olarak kopyalayın ve doldurun:
+
+```bash
+cp .env.example .env
+```
+
+```bash
+# Google ile Giriş (boş bırakılırsa Google butonu görünmez, site yine çalışır)
+GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=...
+
+# İlk açılışta oluşturulacak yönetici hesabı (Admin rolü verilir)
+ADMIN_EMAIL=admin@blgntube.local
+ADMIN_PASSWORD=Admin123!
+
+# Varsayılan dil: tr veya en
+DEFAULT_CULTURE=tr
+```
+
+> `.env` git'e **eklenmez** (gizli anahtarlar). Uygulama bu dosyayı çalışma
+> dizininden başlayıp üst klasörlere doğru otomatik arar.
+
+### Google OAuth anahtarı nasıl alınır?
+
+1. [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
+2. **Create Credentials → OAuth client ID → Web application**
+3. **Authorized redirect URIs** olarak şunları ekleyin:
+   - `https://localhost:7080/signin-google`
+   - `http://localhost:5080/signin-google`
+4. Oluşan **Client ID** ve **Client Secret**'ı `.env` dosyasına yazın.
+
+## 🛡️ Admin paneli
+
+`.env`'deki `ADMIN_EMAIL` / `ADMIN_PASSWORD` ile giriş yapın; navbar'da **Yönetim**
+bağlantısı görünür (`/admin`). Panelde site istatistikleri, en çok indirilen
+siteler, kullanıcı listesi (admin rolü verme/alma) ve son indirmeler (silme) yer alır.
+
+> Not: Bir kullanıcıya admin rolü verdiğinizde, o kullanıcının değişikliği
+> görmesi için **yeniden giriş** yapması gerekir (rol bilgisi oturum çerezine gömülüdür).
+
 ## 🚀 Çalıştırma
 
 ```bash
 # Depoyu klonla
 git clone <repo-url>
 cd MediaDownloader-Site
+
+# .env hazırla (yukarıya bakın)
+cp .env.example .env
 
 # Projeyi geri yükle ve çalıştır
 dotnet restore
@@ -97,14 +144,17 @@ Limitler kod tarafında `Services/QuotaService.cs` içindedir
 
 ```
 BLGNTube.sln
+.env.example         # ortam değişkenleri şablonu (.env olarak kopyalayın)
 src/BLGNTube.Web/
-├── Controllers/   # Home, Download (API), Account, Profile
-├── Data/          # ApplicationDbContext (EF Core / SQLite)
-├── Models/        # ApplicationUser, DownloadRecord, MediaInfo, DownloadJob, ViewModels
-├── Services/      # YtDlpService, DownloadJobManager, QuotaService
-├── Views/         # Razor görünümleri (Home, Account, Profile, Shared)
-├── wwwroot/       # css/js, indirilen geçici dosyalar
-├── Program.cs     # uygulama yapılandırması & DI
+├── Controllers/     # Home, Download (API), Account, Profile, Admin, Culture
+├── Data/            # ApplicationDbContext (EF Core / SQLite)
+├── Models/          # ApplicationUser, DownloadRecord, MediaInfo, DownloadJob, ViewModels
+├── Services/        # YtDlpService, DownloadJobManager, QuotaService,
+│                    #   LocService (TR/EN), DotEnv, IdentitySeeder
+├── Resources/       # tr.json, en.json (çeviriler)
+├── Views/           # Razor görünümleri (Home, Account, Profile, Admin, Shared)
+├── wwwroot/         # css/js, indirilen geçici dosyalar
+├── Program.cs       # uygulama yapılandırması & DI
 └── appsettings.json
 ```
 

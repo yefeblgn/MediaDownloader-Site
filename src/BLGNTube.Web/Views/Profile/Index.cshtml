@@ -13,7 +13,7 @@
         </div>
         <div>
             <h1 class="font-display font-extrabold text-2xl sm:text-3xl">@Model.DisplayName</h1>
-            <p class="text-slate-400 text-sm">@Model.Email · Üyelik: @Model.MemberSince.ToLocalTime().ToString("dd.MM.yyyy")</p>
+            <p class="text-slate-400 text-sm">@Model.Email · @Loc["profile.member_since"] @Model.MemberSince.ToLocalTime().ToString("dd.MM.yyyy")</p>
         </div>
     </div>
 
@@ -36,39 +36,39 @@
                 <span class="absolute inset-0 grid place-items-center text-sm font-bold">@Model.Remaining</span>
             </div>
             <div>
-                <div class="text-sm text-slate-400">Bugün kalan hak</div>
+                <div class="text-sm text-slate-400">@Loc["profile.remaining_today"]</div>
                 <div class="text-2xl font-bold">@Model.Remaining<span class="text-slate-500 text-base"> / @Model.DailyLimit</span></div>
-                <div class="text-xs text-slate-500 mt-1">Gece yarısı (UTC) sıfırlanır</div>
+                <div class="text-xs text-slate-500 mt-1">@Loc["profile.reset_note"]</div>
             </div>
         </div>
 
         <!-- Bugünkü indirme -->
         <div class="glass rounded-2xl p-6 animate-fade-up" style="animation-delay:.05s">
-            <div class="text-sm text-slate-400">Bugün indirilen</div>
+            <div class="text-sm text-slate-400">@Loc["profile.used_today"]</div>
             <div class="mt-2 text-3xl font-bold">@Model.UsedToday</div>
-            <div class="text-xs text-slate-500 mt-1">Günlük limit: @Model.DailyLimit</div>
+            <div class="text-xs text-slate-500 mt-1">@Loc["profile.daily_limit"] @Model.DailyLimit</div>
         </div>
 
         <!-- Toplam -->
         <div class="glass rounded-2xl p-6 animate-fade-up" style="animation-delay:.1s">
-            <div class="text-sm text-slate-400">Toplam indirme</div>
+            <div class="text-sm text-slate-400">@Loc["profile.total"]</div>
             <div class="mt-2 text-3xl font-bold">@Model.TotalDownloads</div>
-            <div class="text-xs text-slate-500 mt-1">Tüm zamanlar</div>
+            <div class="text-xs text-slate-500 mt-1">@Loc["profile.all_time"]</div>
         </div>
     </div>
 
     <!-- Geçmiş -->
     <div class="mt-10 animate-fade-up">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="font-display font-bold text-xl">İndirme geçmişi</h2>
-            <a asp-controller="Home" asp-action="Index" class="text-sm text-brand-400 hover:text-brand-300 font-medium">+ Yeni indirme</a>
+            <h2 class="font-display font-bold text-xl">@Loc["profile.history"]</h2>
+            <a asp-controller="Home" asp-action="Index" class="text-sm text-brand-400 hover:text-brand-300 font-medium">@Loc["profile.new_download"]</a>
         </div>
 
         @if (Model.History.Count == 0)
         {
             <div class="glass rounded-2xl p-10 text-center text-slate-400">
-                <p class="text-lg">Henüz hiçbir şey indirmedin.</p>
-                <a asp-controller="Home" asp-action="Index" class="inline-block mt-4 px-5 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 transition">Hadi başla →</a>
+                <p class="text-lg">@Loc["profile.empty"]</p>
+                <a asp-controller="Home" asp-action="Index" class="inline-block mt-4 px-5 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-brand-500 to-fuchsia-500 hover:from-brand-600 hover:to-fuchsia-600 transition">@Loc["profile.start"]</a>
             </div>
         }
         else
@@ -104,7 +104,7 @@
                     </div>
                 }
             </div>
-            <p class="mt-4 text-xs text-slate-500 text-center">Not: İndirilen dosyalar sunucuda saklanmaz; bu liste yalnızca geçmiş kaydıdır.</p>
+            <p class="mt-4 text-xs text-slate-500 text-center">@Loc["profile.note"]</p>
         }
     </div>
 </section>

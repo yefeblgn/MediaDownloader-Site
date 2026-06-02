@@ -3,6 +3,19 @@
 (() => {
     'use strict';
 
+    // Yerelleştirilmiş metinler (sayfada window.LOC olarak gömülür); yedekler Türkçe.
+    const T = Object.assign({
+        starting: 'İndirme başlatılıyor…',
+        downloading: 'İndiriliyor…',
+        converting: 'Dönüştürülüyor…',
+        completed: 'Tamamlandı',
+        paste: 'Lütfen bir bağlantı yapıştır.',
+        infoFailed: 'Bilgi alınamadı.',
+        startFailed: 'İndirme başlatılamadı.',
+        notFound: 'İşlem bulunamadı.',
+        failed: 'İndirme başarısız oldu.'
+    }, window.LOC || {});
+
     const $ = (id) => document.getElementById(id);
 
     const urlInput = $('urlInput');
@@ -58,7 +71,7 @@
     async function fetchInfo() {
         const url = urlInput.value.trim();
         clearError();
-        if (!url) { showError('Lütfen bir bağlantı yapıştır.'); return; }
+        if (!url) { showError(T.paste); return; }
 
         setBusy(fetchBtn, true);
         hide(previewPanel, progressPanel, readyPanel);
@@ -66,7 +79,7 @@
         const { ok, data } = await postJson('/api/download/info', { url });
         setBusy(fetchBtn, false);
 
-        if (!ok) { showError(data.error || 'Bilgi alınamadı.'); return; }
+        if (!ok) { showError(data.error || T.infoFailed); return; }
 
         $('thumb').src = data.thumbnailUrl || '';
         $('thumb').style.display = data.thumbnailUrl ? '' : 'none';
@@ -106,7 +119,7 @@
 
         hide(previewPanel, readyPanel);
         show(progressPanel);
-        setProgress(0, 'İndirme başlatılıyor…');
+        setProgress(0, T.starting);
 
         const { ok, status, data } = await postJson('/api/download/start', {
             url, format: selectedFormat, quality
@@ -115,7 +128,7 @@
         if (!ok) {
             hide(progressPanel);
             show(previewPanel);
-            showError(data.error || 'İndirme başlatılamadı.');
+            showError(data.error || T.startFailed);
             if (status === 429 && quotaRemaining) quotaRemaining.textContent = '0';
             return;
         }
@@ -138,24 +151,24 @@
         clearInterval(pollTimer);
         pollTimer = setInterval(async () => {
             const res = await fetch('/api/download/status/' + jobId);
-            if (!res.ok) { clearInterval(pollTimer); showFailure('İşlem bulunamadı.'); return; }
+            if (!res.ok) { clearInterval(pollTimer); showFailure(T.notFound); return; }
             const job = await res.json();
 
             switch (job.state) {
                 case 'Downloading':
-                    setProgress(job.progress, 'İndiriliyor…');
+                    setProgress(job.progress, T.downloading);
                     break;
                 case 'Processing':
-                    setProgress(Math.max(job.progress, 99), 'Dönüştürülüyor…');
+                    setProgress(Math.max(job.progress, 99), T.converting);
                     break;
                 case 'Completed':
                     clearInterval(pollTimer);
-                    setProgress(100, 'Tamamlandı');
+                    setProgress(100, T.completed);
                     setTimeout(() => onReady(jobId, job), 350);
                     break;
                 case 'Failed':
                     clearInterval(pollTimer);
-                    showFailure(job.error || 'İndirme başarısız oldu.');
+                    showFailure(job.error || T.failed);
                     break;
             }
         }, 800);
