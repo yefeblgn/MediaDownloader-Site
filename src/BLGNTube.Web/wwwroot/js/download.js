@@ -125,11 +125,17 @@
         });
     });
 
+    function lockFetch(locked) {
+        fetchBtn.disabled = locked;
+        urlInput.disabled = locked;
+    }
+
     async function startDownload() {
         clearError();
         const url     = urlInput.value.trim();
         const quality = selectedFormat === 'mp4' ? qualitySelect.value : null;
 
+        lockFetch(true);
         hide(previewPanel, readyPanel);
         show(progressPanel);
         startSimulatedProgress();
@@ -140,6 +146,7 @@
 
         if (!ok) {
             stopSimulatedProgress();
+            lockFetch(false);
             hide(progressPanel);
             show(previewPanel);
             showError(data.error || T.startFailed);
@@ -196,6 +203,7 @@
                 case 'Failed':
                     clearInterval(pollTimer);
                     stopSimulatedProgress();
+                    lockFetch(false);
                     showFailure(job.error || T.failed);
                     break;
             }
@@ -209,17 +217,26 @@
     }
 
     function onReady(jobId, job) {
+        lockFetch(false);
         hide(progressPanel);
         const sizeMb = job.fileSizeBytes ? (job.fileSizeBytes / 1048576).toFixed(1) + ' MB' : '';
         $('readyMeta').textContent = [job.title, sizeMb].filter(Boolean).join(' · ');
-        saveBtn.href = '/api/download/file/' + jobId;
+        const fileUrl = '/api/download/file/' + jobId;
+        saveBtn.href = fileUrl;
         show(readyPanel);
         readyPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const a = document.createElement('a');
+        a.href = fileUrl;
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 
     function reset() {
         clearError();
         stopSimulatedProgress();
+        lockFetch(false);
         hide(progressPanel, readyPanel, previewPanel);
         urlInput.value = '';
         urlInput.focus();
