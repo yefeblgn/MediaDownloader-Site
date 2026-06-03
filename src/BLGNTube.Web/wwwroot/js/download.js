@@ -39,22 +39,22 @@
 
     function showError(msg) {
         errorBox.textContent = msg;
-        errorBox.classList.remove('hidden');
+        errorBox.style.display = '';
     }
-    function clearError() { errorBox.classList.add('hidden'); errorBox.textContent = ''; }
+    function clearError() { errorBox.style.display = 'none'; errorBox.textContent = ''; }
 
     function setBusy(btn, busy) {
         const label = btn.querySelector('.btn-label');
         const spin  = btn.querySelector('.btn-spinner');
         btn.disabled = busy;
         if (label && spin) {
-            label.classList.toggle('hidden', busy);
-            spin.classList.toggle('hidden', !busy);
+            label.style.display = busy ? 'none' : '';
+            spin.style.display  = busy ? '' : 'none';
         }
     }
 
-    function hide(...els) { els.forEach(e => e.classList.add('hidden')); }
-    function show(...els) { els.forEach(e => e.classList.remove('hidden')); }
+    function hide(...els) { els.forEach(e => e.style.display = 'none'); }
+    function show(...els) { els.forEach(e => e.style.display = ''); }
 
     async function postJson(url, body) {
         const res  = await fetch(url, {
