@@ -4,10 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BLGNTube.Web.Data;
 
-/// <summary>
-/// Uygulamanın EF Core veritabanı bağlamı. Identity tablolarını ve
-/// indirme kayıtlarını içerir (SQLite üzerinde).
-/// </summary>
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Çeviri dosyalarını çıktı/publish dizinine kopyala -->
     <Content Update="Resources\**\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

@@ -6,10 +6,6 @@ using Microsoft.AspNetCore.StaticFiles;
 
 namespace BLGNTube.Web.Controllers;
 
-/// <summary>
-/// İndirme akışının JSON API'si: medya inceleme, job başlatma, durum
-/// sorgulama ve hazır dosyanın teslimi. Arayüz bu uçları AJAX ile kullanır.
-/// </summary>
 [ApiController]
 [Route("api/download")]
 public class DownloadController : ControllerBase
@@ -34,7 +30,6 @@ public class DownloadController : ControllerBase
     public record InfoRequest(string Url);
     public record StartRequest(string Url, string Format, string? Quality);
 
-    /// <summary>Bir URL'in medya önizleme bilgisini döndürür.</summary>
     [HttpPost("info")]
     public async Task<IActionResult> Info([FromBody] InfoRequest req)
     {
@@ -60,7 +55,6 @@ public class DownloadController : ControllerBase
         }
     }
 
-    /// <summary>Kota kontrolü yapar ve geçerse arka plan indirme job'unu başlatır.</summary>
     [HttpPost("start")]
     public async Task<IActionResult> Start([FromBody] StartRequest req)
     {
@@ -83,7 +77,6 @@ public class DownloadController : ControllerBase
         var format = string.Equals(req.Format, "mp3", StringComparison.OrdinalIgnoreCase)
             ? MediaFormat.Mp3 : MediaFormat.Mp4;
 
-        // Başlık/küçük resmi job'a iliştirmek için bilgiyi çekmeye çalış (başarısızsa devam).
         MediaInfo? info = null;
         try { info = await _ytDlp.GetMediaInfoAsync(req.Url.Trim()); }
         catch (Exception ex) { _logger.LogInformation("Bilgi alınamadı, indirme yine de denenecek: {Msg}", ex.Message); }
@@ -94,11 +87,10 @@ public class DownloadController : ControllerBase
         {
             jobId = job.Id,
             status = job.ToStatusDto(),
-            remaining = quota.Remaining - 1 // bu indirme tamamlanınca düşülecek
+            remaining = quota.Remaining - 1
         });
     }
 
-    /// <summary>Bir job'un güncel durumunu döndürür (ilerleme polling'i için).</summary>
     [HttpGet("status/{id}")]
     public IActionResult Status(string id)
     {
@@ -107,7 +99,6 @@ public class DownloadController : ControllerBase
         return Ok(job.ToStatusDto());
     }
 
-    /// <summary>Tamamlanmış job'un dosyasını tarayıcıya indirtir.</summary>
     [HttpGet("file/{id}")]
     public IActionResult File(string id)
     {

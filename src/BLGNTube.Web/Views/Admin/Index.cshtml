@@ -15,7 +15,6 @@
         </div>
     </div>
 
-    <!-- İstatistikler -->
     <div class="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
         @{
             var stats = new (string label, int val, string color)[]
@@ -36,7 +35,6 @@
     </div>
 
     <div class="mt-8 grid lg:grid-cols-3 gap-6">
-        <!-- En çok indirilen siteler -->
         <div class="glass rounded-2xl p-6 animate-fade-up">
             <h2 class="font-display font-bold text-lg mb-4">@Loc["admin.topsites"]</h2>
             @if (Model.TopSites.Count == 0)
@@ -59,7 +57,6 @@
             }
         </div>
 
-        <!-- Kullanıcılar -->
         <div class="glass rounded-2xl p-6 animate-fade-up lg:col-span-2 overflow-x-auto">
             <h2 class="font-display font-bold text-lg mb-4">@Loc["admin.users"]</h2>
             <table class="w-full text-sm">
@@ -112,7 +109,6 @@
         </div>
     </div>
 
-    <!-- Son indirmeler -->
     <div class="mt-6 glass rounded-2xl p-6 animate-fade-up overflow-x-auto">
         <h2 class="font-display font-bold text-lg mb-4">@Loc["admin.recent"]</h2>
         @if (Model.RecentDownloads.Count == 0)

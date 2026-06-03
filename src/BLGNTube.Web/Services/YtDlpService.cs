@@ -7,11 +7,6 @@ using Microsoft.Extensions.Options;
 
 namespace BLGNTube.Web.Services;
 
-/// <summary>
-/// yt-dlp (ve ffmpeg) komut satırı aracını saran servis. Bir URL'in medya
-/// bilgisini çeker ve gerçek indirme/dönüştürme işlemini yürütür.
-/// metube gibi açık kaynak projelerle aynı motoru (yt-dlp) kullanır.
-/// </summary>
 public class YtDlpService
 {
     private readonly DownloaderOptions _options;
@@ -23,16 +18,12 @@ public class YtDlpService
         _logger = logger;
     }
 
-    /// <summary>
-    /// URL'i yt-dlp ile inceler ve başlık, küçük resim, süre ve kalite
-    /// seçeneklerini içeren bir önizleme bilgisi döndürür.
-    /// </summary>
     public async Task<MediaInfo> GetMediaInfoAsync(string url, CancellationToken ct = default)
     {
         var args = new List<string>
         {
-            "-J",                 // tek JSON çıktısı
-            "--no-playlist",      // tek video
+            "-J",
+            "--no-playlist",
             "--no-warnings",
             "--no-progress",
             url
@@ -48,7 +39,6 @@ public class YtDlpService
         using var doc = JsonDocument.Parse(result.StdOut);
         var root = doc.RootElement;
 
-        // Playlist/çoklu girdi gelirse ilk girdiyi al.
         if (root.TryGetProperty("entries", out var entries) &&
             entries.ValueKind == JsonValueKind.Array && entries.GetArrayLength() > 0)
         {
@@ -71,7 +61,6 @@ public class YtDlpService
         return info;
     }
 
-    /// <summary>Mevcut video formatlarından benzersiz çözünürlük seçenekleri çıkarır.</summary>
     private static List<VideoQualityOption> ExtractQualities(JsonElement root)
     {
         var heights = new SortedSet<int>();
@@ -79,7 +68,6 @@ public class YtDlpService
         {
             foreach (var f in formats.EnumerateArray())
             {
-                // Sadece görüntü içeren formatları dikkate al.
                 if (f.TryGetProperty("vcodec", out var vc) && vc.GetString() == "none") continue;
                 if (f.TryGetProperty("height", out var h) && h.ValueKind == JsonValueKind.Number)
                 {
@@ -89,7 +77,6 @@ public class YtDlpService
             }
         }
 
-        // En yaygın hedef kalitelere sınırla; mevcut olanların altına yuvarla.
         var standard = new[] { 2160, 1440, 1080, 720, 480, 360, 240, 144 };
         var available = standard.Where(s => heights.Any(h => h >= s)).ToList();
 
@@ -101,7 +88,6 @@ public class YtDlpService
             })
             .ToList();
 
-        // Hiç format okunamadıysa makul varsayılanlar sun.
         if (options.Count == 0)
         {
             options = new List<VideoQualityOption>
@@ -115,17 +101,10 @@ public class YtDlpService
         return options;
     }
 
-    /// <summary>
-    /// Bir indirme job'unu yürütür: yt-dlp'yi uygun formatla çalıştırır,
-    /// ilerlemeyi <paramref name="progress"/> ile bildirir ve tamamlandığında
-    /// job üzerindeki dosya alanlarını doldurur.
-    /// </summary>
     public async Task ExecuteAsync(DownloadJob job, string outputDir, Action<double>? progress, CancellationToken ct = default)
     {
         Directory.CreateDirectory(outputDir);
 
-        // Her job kendi alt klasörüne indirir; böylece sonuç dosyasını
-        // güvenle tespit edebiliriz.
         var outputTemplate = Path.Combine(outputDir, "%(title).80B [%(id)s].%(ext)s");
 
         var args = new List<string>
@@ -138,9 +117,6 @@ public class YtDlpService
             "-o", outputTemplate
         };
 
-        // --ffmpeg-location yalnızca gerçek bir yol/dizin verildiğinde geçilir.
-        // Sadece "ffmpeg" gibi çıplak bir komut adıysa yt-dlp'nin onu PATH'ten
-        // bulmasına izin veririz (aksi halde yt-dlp onu yol sanıp bulamaz).
         var ffmpeg = _options.FfmpegPath;
         if (!string.IsNullOrWhiteSpace(ffmpeg) &&
             (ffmpeg.Contains('/') || ffmpeg.Contains('\\') || File.Exists(ffmpeg) || Directory.Exists(ffmpeg)))
@@ -151,7 +127,6 @@ public class YtDlpService
 
         if (job.Format == MediaFormat.Mp3)
         {
-            // En iyi sesi çıkar ve 320kbps MP3'e dönüştür.
             args.AddRange(new[]
             {
                 "-x",
@@ -161,8 +136,6 @@ public class YtDlpService
         }
         else
         {
-            // İstenen yüksekliğe kadar en iyi video+ses, MP4'te birleştir.
-            // H.264 (avc1) öncelikli: Windows Media Player ve çoğu oynatıcı AV1/VP9'u desteklemez.
             var height = ParseHeight(job.Quality);
             var format = height > 0
                 ? $"bv*[height<={height}][vcodec^=avc]+ba/bv*[height<={height}]+ba/b[height<={height}]/bv*+ba/b"
@@ -188,7 +161,6 @@ public class YtDlpService
             throw new InvalidOperationException(FriendlyError(result.StdErr));
         }
 
-        // İndirilen dosyayı tespit et (alt klasördeki en büyük/yeni dosya).
         var file = new DirectoryInfo(outputDir)
             .GetFiles()
             .OrderByDescending(f => f.LastWriteTimeUtc)
@@ -210,7 +182,6 @@ public class YtDlpService
         return int.TryParse(digits, out var h) ? h : 0;
     }
 
-    /// <summary>"download:__PROG__  45.3%" biçimli satırdan yüzdeyi okur.</summary>
     private static double? TryParseProgress(string line)
     {
         const string marker = "__PROG__";
@@ -226,7 +197,6 @@ public class YtDlpService
     private static string? GetString(JsonElement el, string name) =>
         el.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
 
-    /// <summary>yt-dlp stderr çıktısını kullanıcıya gösterilebilir kısa mesaja çevirir.</summary>
     private static string FriendlyError(string stderr)
     {
         if (string.IsNullOrWhiteSpace(stderr))
@@ -242,7 +212,6 @@ public class YtDlpService
         if (lower.Contains("no such file") || lower.Contains("not recognized") || lower.Contains("cannot find"))
             return "yt-dlp veya ffmpeg bulunamadı. Sunucu kurulumunu kontrol edin.";
 
-        // Son anlamlı satırı döndür.
         var lastLine = stderr.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                              .LastOrDefault();
         return lastLine ?? "Medya işlenemedi.";
@@ -250,7 +219,6 @@ public class YtDlpService
 
     private record ProcessResult(int ExitCode, string StdOut, string StdErr);
 
-    /// <summary>Bir komutu çalıştırır, çıktıyı toplar ve satır geri çağrısı sağlar.</summary>
     private async Task<ProcessResult> RunAsync(string fileName, IReadOnlyList<string> args,
         Action<string>? onLine, CancellationToken ct)
     {
@@ -278,7 +246,6 @@ public class YtDlpService
         {
             if (e.Data is null) return;
             stderr.AppendLine(e.Data);
-            // yt-dlp ilerlemeyi bazen stderr'e de yazabilir.
             onLine?.Invoke(e.Data);
         };
 
@@ -304,7 +271,7 @@ public class YtDlpService
         }
         catch (OperationCanceledException)
         {
-            try { if (!process.HasExited) process.Kill(true); } catch { /* yok say */ }
+            try { if (!process.HasExited) process.Kill(true); } catch { }
             throw new InvalidOperationException("İşlem zaman aşımına uğradı veya iptal edildi.");
         }
 

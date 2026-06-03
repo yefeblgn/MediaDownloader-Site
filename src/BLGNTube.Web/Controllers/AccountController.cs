@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BLGNTube.Web.Controllers;
 
-/// <summary>Kayıt, giriş ve çıkış işlemlerini yöneten controller.</summary>
 public class AccountController : Controller
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -87,8 +86,6 @@ public class AccountController : Controller
         return View(model);
     }
 
-    // --- Harici giriş (Google) ---
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult ExternalLogin(string provider, string? returnUrl = null)
@@ -110,12 +107,10 @@ public class AccountController : Controller
         var info = await _signInManager.GetExternalLoginInfoAsync();
         if (info is null) return RedirectToAction(nameof(Login), new { returnUrl });
 
-        // Daha önce bağlanmışsa doğrudan giriş yap.
         var signIn = await _signInManager.ExternalLoginSignInAsync(
             info.LoginProvider, info.ProviderKey, isPersistent: true, bypassTwoFactor: true);
         if (signIn.Succeeded) return RedirectToLocal(returnUrl);
 
-        // Yeni kullanıcı: Google profilinden e-posta/ad al.
         var email = info.Principal.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrEmpty(email))
         {
@@ -148,7 +143,6 @@ public class AccountController : Controller
         return RedirectToLocal(returnUrl);
     }
 
-    /// <summary>Görünümlerde harici giriş butonlarını göstermek için şemaları doldurur.</summary>
     private async Task PopulateExternalSchemesAsync()
     {
         var schemes = await _signInManager.GetExternalAuthenticationSchemesAsync();

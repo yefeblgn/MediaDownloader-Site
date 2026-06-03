@@ -5,11 +5,6 @@ using Microsoft.Extensions.Options;
 
 namespace BLGNTube.Web.Services;
 
-/// <summary>
-/// İndirme job'larını bellekte tutan ve arka planda yürüten yönetici.
-/// Job tamamlanınca veritabanına bir <see cref="DownloadRecord"/> yazar
-/// (bu kayıt kotayı da besler). Tamamlanan dosyalar bir süre sonra silinir.
-/// </summary>
 public class DownloadJobManager
 {
     private readonly ConcurrentDictionary<string, DownloadJob> _jobs = new();
@@ -32,7 +27,6 @@ public class DownloadJobManager
 
     public DownloadJob? Get(string id) => _jobs.TryGetValue(id, out var job) ? job : null;
 
-    /// <summary>Yeni bir job oluşturur ve arka planda yürütmeye başlar.</summary>
     public DownloadJob Start(string url, MediaFormat format, string? quality,
         string? userId, string ipAddress, MediaInfo? info)
     {
@@ -82,7 +76,6 @@ public class DownloadJobManager
         }
     }
 
-    /// <summary>Tamamlanan indirmeyi kalıcı geçmiş/kota kaydına dönüştürür.</summary>
     private async Task PersistRecordAsync(DownloadJob job)
     {
         try
@@ -111,7 +104,6 @@ public class DownloadJobManager
         }
     }
 
-    /// <summary>Dosya teslim edildikten sonra disk alanını boşaltmak için zamanlanmış temizlik.</summary>
     private void ScheduleCleanup(DownloadJob job, string jobDir)
     {
         _ = Task.Run(async () =>
@@ -128,7 +120,6 @@ public class DownloadJobManager
         catch (Exception ex) { _logger.LogWarning(ex, "Geçici klasör silinemedi: {Dir}", dir); }
     }
 
-    /// <summary>Çıktı kök dizinini içerik köküne göre çözer.</summary>
     private string ResolveOutputRoot()
     {
         var dir = _options.OutputDirectory;

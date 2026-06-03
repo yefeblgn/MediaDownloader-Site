@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BLGNTube.Web.Controllers;
 
-/// <summary>Üyenin profili: kalan hak, istatistikler ve indirme geçmişi.</summary>
 [Authorize]
 public class ProfileController : Controller
 {

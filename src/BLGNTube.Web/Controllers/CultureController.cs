@@ -3,13 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BLGNTube.Web.Controllers;
 
-/// <summary>Arayüz dilini (kültür) değiştirip bir çerezde saklar.</summary>
 public class CultureController : Controller
 {
     [HttpGet]
     public IActionResult Set(string culture, string? returnUrl = null)
     {
-        // Yalnızca desteklenen kültürlere izin ver.
         if (culture is not ("tr" or "en")) culture = "tr";
 
         Response.Cookies.Append(

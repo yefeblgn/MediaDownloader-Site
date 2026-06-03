@@ -50,7 +50,6 @@
 </head>
 <body class="bg-[#0b0b14] text-slate-100 font-sans antialiased min-h-screen flex flex-col overflow-x-hidden">
 
-    <!-- Animasyonlu gradient arka plan -->
     <div class="aurora" aria-hidden="true">
         <span class="blob blob-1"></span>
         <span class="blob blob-2"></span>
@@ -70,7 +69,6 @@
                 <div class="flex items-center gap-2 sm:gap-3">
                     <a asp-controller="Home" asp-action="About" class="hidden sm:inline-block px-3 py-2 text-sm text-slate-300 hover:text-white transition">@Loc["nav.how"]</a>
 
-                    <!-- Dil değiştirici -->
                     <div class="flex items-center rounded-lg bg-white/5 border border-white/10 overflow-hidden text-xs font-semibold">
                         <a asp-controller="Culture" asp-action="Set" asp-route-culture="tr" asp-route-returnUrl="@returnPath"
                            class="px-2.5 py-1.5 transition @(curCulture == "tr" ? "bg-brand-500 text-white" : "text-slate-300 hover:text-white")">TR</a>

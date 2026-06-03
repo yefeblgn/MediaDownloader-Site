@@ -1,5 +1,3 @@
-/* BLGNTube — özel stiller (Tailwind'i tamamlar) */
-
 :root {
     --brand: #f43f5e;
     --brand2: #d946ef;
@@ -9,7 +7,6 @@ html, body {
     scroll-behavior: smooth;
 }
 
-/* ---- Animasyonlu aurora arka plan ---- */
 .aurora {
     position: fixed;
     inset: 0;
@@ -66,13 +63,11 @@ html, body {
     50% { transform: translate(4vw, -6vh) scale(1.2); }
 }
 
-/* Hareket azaltma tercihi olan kullanıcılar için animasyonu durdur */
 @media (prefers-reduced-motion: reduce) {
     .aurora .blob { animation: none; }
     .animate-fade-up { animation: none !important; }
 }
 
-/* ---- Glassmorphism kart ---- */
 .glass {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -80,7 +75,6 @@ html, body {
     -webkit-backdrop-filter: blur(18px);
 }
 
-/* ---- Format seçim butonu aktif durumu ---- */
 .format-btn {
     cursor: pointer;
 }
@@ -91,7 +85,6 @@ html, body {
     box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.25) inset;
 }
 
-/* Çok satır kırpma (Tailwind line-clamp eklentisiz garanti) */
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -99,7 +92,6 @@ html, body {
     overflow: hidden;
 }
 
-/* Form alanları için doğrulama mesajı rengi */
 .field-validation-error,
 .text-danger {
     color: #fda4af;
@@ -110,12 +102,10 @@ html, body {
     border-color: rgba(244, 63, 94, 0.6) !important;
 }
 
-/* Seçili metin rengi */
 ::selection {
     background: rgba(244, 63, 94, 0.35);
 }
 
-/* Progress bar shimmer — indirme başlarken */
 @keyframes progress-shine {
     0%   { background-position: 200% center; }
     100% { background-position: -200% center; }

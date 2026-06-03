@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BLGNTube.Web.Models;
 
-/// <summary>Kayıt formu.</summary>
 public class RegisterViewModel
 {
     [Required(ErrorMessage = "Görünen ad gerekli.")]
@@ -27,7 +26,6 @@ public class RegisterViewModel
     public string ConfirmPassword { get; set; } = string.Empty;
 }
 
-/// <summary>Giriş formu.</summary>
 public class LoginViewModel
 {
     [Required(ErrorMessage = "E-posta gerekli.")]
@@ -44,7 +42,6 @@ public class LoginViewModel
     public bool RememberMe { get; set; }
 }
 
-/// <summary>Profil sayfasının görüntü modeli.</summary>
 public class ProfileViewModel
 {
     public string DisplayName { get; set; } = string.Empty;

@@ -1,8 +1,6 @@
-// BLGNTube — genel arayüz davranışları
 (() => {
     'use strict';
 
-    // Sayfa kaydırıldıkça navbar'a hafif gölge/arka plan ekle.
     const nav = document.querySelector('header nav');
     if (nav) {
         const onScroll = () => {

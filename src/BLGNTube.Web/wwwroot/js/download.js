@@ -1,5 +1,3 @@
-// BLGNTube — indirme arayüzü akışı
-// Adımlar: URL incele -> format/kalite seç -> job başlat -> ilerlemeyi izle -> dosyayı kaydet
 (() => {
     'use strict';
 
@@ -39,7 +37,6 @@
     let fakePercent          = 0;
     let realProgressStarted  = false;
 
-    // --- Yardımcılar ---
     function showError(msg) {
         errorBox.textContent = msg;
         errorBox.classList.remove('hidden');
@@ -69,14 +66,12 @@
         return { ok: res.ok, status: res.status, data };
     }
 
-    // --- Sahte ilerleme (gerçek veri gelene kadar görsel geri bildirim) ---
     function startSimulatedProgress() {
         realProgressStarted = false;
         fakePercent = 2;
         progressBar.classList.add('is-indeterminate');
         setProgress(fakePercent, T.starting);
         fakeTimer = setInterval(() => {
-            // Başta hızlı, %82'ye yaklaştıkça yavaşlar
             const gap = 82 - fakePercent;
             fakePercent += Math.max(0.15, gap * 0.04) * (0.7 + Math.random() * 0.6);
             fakePercent = Math.min(82, fakePercent);
@@ -89,7 +84,6 @@
         progressBar.classList.remove('is-indeterminate');
     }
 
-    // --- 1. Medyayı incele ---
     async function fetchInfo() {
         const url = urlInput.value.trim();
         clearError();
@@ -122,7 +116,6 @@
         previewPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // --- Format seçimi ---
     document.querySelectorAll('.format-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('is-active'));
@@ -132,7 +125,6 @@
         });
     });
 
-    // --- 2. İndirmeyi başlat ---
     async function startDownload() {
         clearError();
         const url     = urlInput.value.trim();
@@ -162,14 +154,12 @@
         pollStatus(data.jobId);
     }
 
-    // label null ise etiket güncellenmez (sahte timer yalnızca yüzdeyi iter)
     function setProgress(pct, label) {
         progressBar.style.width = Math.max(2, pct) + '%';
         progressPct.textContent = Math.round(pct) + '%';
         if (label != null) progressLabel.textContent = label;
     }
 
-    // --- 3. Durumu izle ---
     function pollStatus(jobId) {
         clearInterval(pollTimer);
         pollTimer = setInterval(async () => {
@@ -218,7 +208,6 @@
         showError(msg);
     }
 
-    // --- 4. Hazır ---
     function onReady(jobId, job) {
         hide(progressPanel);
         const sizeMb = job.fileSizeBytes ? (job.fileSizeBytes / 1048576).toFixed(1) + ' MB' : '';
@@ -228,7 +217,6 @@
         readyPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // --- Sıfırla ---
     function reset() {
         clearError();
         stopSimulatedProgress();
@@ -237,7 +225,6 @@
         urlInput.focus();
     }
 
-    // --- Olaylar ---
     fetchBtn.addEventListener('click', fetchInfo);
     urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchInfo(); });
     downloadBtn.addEventListener('click', startDownload);
