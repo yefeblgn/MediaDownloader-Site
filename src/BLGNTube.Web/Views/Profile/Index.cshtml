@@ -6,7 +6,6 @@
 
 <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-10">
 
-    <!-- Başlık -->
     <div class="flex items-center gap-4 animate-fade-up">
         <div class="grid place-items-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-fuchsia-500 text-white text-2xl font-display font-bold shadow-lg shadow-brand-500/30">
             @(string.IsNullOrEmpty(Model.DisplayName) ? "?" : Model.DisplayName.Trim()[0].ToString().ToUpper())
@@ -17,9 +16,7 @@
         </div>
     </div>
 
-    <!-- İstatistik kartları -->
     <div class="mt-8 grid sm:grid-cols-3 gap-4">
-        <!-- Kalan hak -->
         <div class="glass rounded-2xl p-6 flex items-center gap-5 animate-fade-up">
             <div class="relative w-20 h-20 shrink-0">
                 <svg class="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
@@ -42,14 +39,12 @@
             </div>
         </div>
 
-        <!-- Bugünkü indirme -->
         <div class="glass rounded-2xl p-6 animate-fade-up" style="animation-delay:.05s">
             <div class="text-sm text-slate-400">@Loc["profile.used_today"]</div>
             <div class="mt-2 text-3xl font-bold">@Model.UsedToday</div>
             <div class="text-xs text-slate-500 mt-1">@Loc["profile.daily_limit"] @Model.DailyLimit</div>
         </div>
 
-        <!-- Toplam -->
         <div class="glass rounded-2xl p-6 animate-fade-up" style="animation-delay:.1s">
             <div class="text-sm text-slate-400">@Loc["profile.total"]</div>
             <div class="mt-2 text-3xl font-bold">@Model.TotalDownloads</div>
@@ -57,7 +52,6 @@
         </div>
     </div>
 
-    <!-- Geçmiş -->
     <div class="mt-10 animate-fade-up">
         <div class="flex items-center justify-between mb-4">
             <h2 class="font-display font-bold text-xl">@Loc["profile.history"]</h2>

@@ -3,10 +3,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace BLGNTube.Web.Services;
 
-/// <summary>
-/// Uygulama açılışında "Admin" rolünü ve .env'de tanımlı yönetici hesabını
-/// oluşturur (yoksa). Var olan hesap için rolün atandığından emin olur.
-/// </summary>
 public static class IdentitySeeder
 {
     public const string AdminRole = "Admin";
@@ -16,7 +12,6 @@ public static class IdentitySeeder
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-        // Admin rolü
         if (!await roleManager.RoleExistsAsync(AdminRole))
             await roleManager.CreateAsync(new IdentityRole(AdminRole));
 

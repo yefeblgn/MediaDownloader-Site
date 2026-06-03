@@ -1,17 +1,7 @@
 namespace BLGNTube.Web.Services;
 
-/// <summary>
-/// Basit bir ".env" dosyası okuyucusu. KEY=VALUE satırlarını okuyup, henüz
-/// tanımlı değilse süreç ortam değişkeni olarak ayarlar. Böylece bu değerler
-/// ASP.NET Core yapılandırmasından (Configuration[...]) da okunabilir.
-/// </summary>
 public static class DotEnv
 {
-    /// <summary>
-    /// .env dosyasını yükler. Belirtilen yol yoksa, çalışma dizininden başlayıp
-    /// üst dizinlere doğru bir ".env" arar (böylece proje dizininden de, depo
-    /// kökünden de çalıştırıldığında bulunur).
-    /// </summary>
     public static void Load(string? path = null)
     {
         if (path is null || !File.Exists(path))
@@ -30,20 +20,17 @@ public static class DotEnv
             var key = line[..idx].Trim();
             var value = line[(idx + 1)..].Trim();
 
-            // Tırnak içindeyse tırnakları kaldır.
             if (value.Length >= 2 &&
                 ((value[0] == '"' && value[^1] == '"') || (value[0] == '\'' && value[^1] == '\'')))
             {
                 value = value[1..^1];
             }
 
-            // Zaten ortamda tanımlıysa üzerine yazma (gerçek ortam değişkenleri önceliklidir).
             if (Environment.GetEnvironmentVariable(key) is null)
                 Environment.SetEnvironmentVariable(key, value);
         }
     }
 
-    /// <summary>Çalışma dizininden başlayarak üst dizinlerde dosyayı arar.</summary>
     private static string? FindUpwards(string fileName)
     {
         var dir = new DirectoryInfo(Directory.GetCurrentDirectory());

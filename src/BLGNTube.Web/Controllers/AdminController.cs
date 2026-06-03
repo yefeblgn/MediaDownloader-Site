@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BLGNTube.Web.Controllers;
 
-/// <summary>Yalnızca Admin rolündeki kullanıcılara açık yönetim paneli.</summary>
 [Authorize(Roles = IdentitySeeder.AdminRole)]
 public class AdminController : Controller
 {
@@ -48,7 +47,6 @@ public class AdminController : Controller
             .Take(20)
             .ToListAsync();
 
-        // Kullanıcılar + indirme sayıları + admin rolü bilgisi
         var users = await _db.Users.OrderByDescending(u => u.CreatedAt).Take(50).ToListAsync();
         var counts = await _db.DownloadRecords
             .Where(r => r.UserId != null)
@@ -89,7 +87,6 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleAdmin(string userId)
     {
-        // Adminin kendi yetkisini almasını engelle (kilitlenmeyi önler).
         if (userId == _userManager.GetUserId(User))
             return RedirectToAction(nameof(Index));
 

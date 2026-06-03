@@ -4,7 +4,6 @@
     var WALL_ID = '__adb_wall';
     var INTERVAL = 600;
 
-    // AdBlock tuzak elementi — bilinen ad CSS sınıfları
     function createBait() {
         var b = document.createElement('div');
         b.className = 'ad-banner ads adsbox doubleclick ad-placement pub_300x250 text-ad';
@@ -64,11 +63,9 @@
     var _enforcing = false;
 
     function enforce() {
-        // Overlay yoksa ekle
         if (!document.getElementById(WALL_ID)) {
             document.body.appendChild(buildWall());
         }
-        // Sayfa scroll edilemesin
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
     }
@@ -79,14 +76,12 @@
 
         enforce();
 
-        // DevTools'tan silmeye karşı: MutationObserver
         var obs = new MutationObserver(function () {
             if (!document.getElementById(WALL_ID)) enforce();
         });
         obs.observe(document.body, { childList: true });
         obs.observe(document.documentElement, { childList: true });
 
-        // Ek güvenlik: setInterval ile sürekli kontrol
         setInterval(enforce, INTERVAL);
     }
 

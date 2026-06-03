@@ -1,10 +1,6 @@
-// BLGNTube — Monetag reklam tetikleyici
-// Bul tuşu  → zone 11091992
-// İndir tuşu → zone 11091994
-
 window.ADS = (function () {
     var _last = {};
-    var COOLDOWN = 30000; // aynı slot için 30 sn bekleme
+    var COOLDOWN = 30000;
 
     function canTrigger(slot) {
         var now = Date.now();
@@ -23,8 +19,8 @@ window.ADS = (function () {
     return {
         trigger: function (slot) {
             if (!canTrigger(slot)) return;
-            if (slot === 'fetch')    injectZone(11091992); // Bul
-            if (slot === 'download') injectZone(11091994); // İndir
+            if (slot === 'fetch')    injectZone(11091992);
+            if (slot === 'download') injectZone(11091994);
         }
     };
 })();

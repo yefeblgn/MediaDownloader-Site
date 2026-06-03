@@ -3,11 +3,6 @@ using System.Text.Json;
 
 namespace BLGNTube.Web.Services;
 
-/// <summary>
-/// Hafif, JSON tabanlı yerelleştirme (çeviri) servisi. Resources klasöründeki
-/// tr.json / en.json sözlüklerini bir kez yükler ve istek başına ayarlanan
-/// kültüre (CultureInfo.CurrentUICulture) göre çeviri döndürür.
-/// </summary>
 public class LocService
 {
     private readonly Dictionary<string, Dictionary<string, string>> _translations = new();
@@ -41,10 +36,8 @@ public class LocService
         }
     }
 
-    /// <summary>Geçerli istek için aktif kültür kodu ("tr" / "en").</summary>
     public string CurrentCulture => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
-    /// <summary>Anahtara karşılık gelen çeviriyi döndürür; yoksa anahtarın kendisini.</summary>
     public string this[string key]
     {
         get

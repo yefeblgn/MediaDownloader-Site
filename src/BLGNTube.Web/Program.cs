@@ -6,23 +6,18 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 
-// --- .env dosyasını yükle (gizli anahtarlar, admin hesabı vb.) ---
-// Çalışma dizininden başlayıp üst dizinlerde .env aranır.
 DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Veritabanı (SQLite) ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Data Source=blgntube.db";
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
-// --- Kimlik (ASP.NET Core Identity) ---
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
-        // Ödev için makul, çok katı olmayan şifre kuralları.
         options.Password.RequiredLength = 6;
         options.Password.RequireNonAlphanumeric = false;
         options.Password.RequireUppercase = false;
@@ -42,7 +37,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
-// --- Google ile giriş (yalnızca .env'de anahtarlar varsa etkin) ---
 var googleClientId = builder.Configuration["GOOGLE_CLIENT_ID"];
 var googleClientSecret = builder.Configuration["GOOGLE_CLIENT_SECRET"];
 if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
@@ -55,15 +49,11 @@ if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(goo
     });
 }
 
-// --- Yerelleştirme (TR / EN) ---
 builder.Services.AddSingleton<LocService>();
 
-// --- Uygulama servisleri ---
 builder.Services.Configure<DownloaderOptions>(
     builder.Configuration.GetSection(DownloaderOptions.SectionName));
 builder.Services.AddScoped<QuotaService>();
-// YtDlpService durumsuzdur (yalnızca options + logger), bu yüzden singleton
-// DownloadJobManager tarafından güvenle tüketilebilir.
 builder.Services.AddSingleton<YtDlpService>();
 builder.Services.AddSingleton<DownloadJobManager>();
 
@@ -71,7 +61,6 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// --- Veritabanını oluştur + admin hesabını ekle ---
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -87,14 +76,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Nginx gibi reverse proxy arkasında çalışırken X-Forwarded-* başlıklarını oku.
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
                      | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
 });
 
-// --- İstek yerelleştirme (dil çerezine göre kültür ayarla) ---
 var supportedCultures = new[] { new CultureInfo("tr"), new CultureInfo("en") };
 var defaultCulture = builder.Configuration["DEFAULT_CULTURE"] is "en" ? "en" : "tr";
 app.UseRequestLocalization(new RequestLocalizationOptions

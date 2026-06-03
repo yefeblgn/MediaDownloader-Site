@@ -1,6 +1,7 @@
 # Build sonuçları
 bin/
 obj/
+publish/
 [Dd]ebug/
 [Rr]elease/
 *.user
