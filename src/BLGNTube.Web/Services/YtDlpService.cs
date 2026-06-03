@@ -138,8 +138,8 @@ public class YtDlpService
         {
             var height = ParseHeight(job.Quality);
             var format = height > 0
-                ? $"bv*[height<={height}][vcodec^=avc]+ba/bv*[height<={height}]+ba/b[height<={height}]/bv*+ba/b"
-                : "bv*[vcodec^=avc]+ba/bv*+ba/b";
+                ? $"bv*[height<={height}][vcodec^=avc]+ba[ext=m4a]/bv*[height<={height}][vcodec^=avc]+ba/bv*[height<={height}]+ba[ext=m4a]/bv*[height<={height}]+ba/b[height<={height}]/bv*+ba/b"
+                : "bv*[vcodec^=avc]+ba[ext=m4a]/bv*[vcodec^=avc]+ba/bv*+ba[ext=m4a]/bv*+ba/b";
             args.AddRange(new[]
             {
                 "-f", format,
