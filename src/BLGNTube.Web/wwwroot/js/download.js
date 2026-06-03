@@ -88,6 +88,7 @@
         const url = urlInput.value.trim();
         clearError();
         if (!url) { showError(T.paste); return; }
+        window.ADS && window.ADS.trigger('fetch');
 
         setBusy(fetchBtn, true);
         hide(previewPanel, progressPanel, readyPanel);
@@ -132,6 +133,7 @@
 
     async function startDownload() {
         clearError();
+        window.ADS && window.ADS.trigger('download');
         const url     = urlInput.value.trim();
         const quality = selectedFormat === 'mp4' ? qualitySelect.value : null;
 

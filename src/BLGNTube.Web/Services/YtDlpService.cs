@@ -105,7 +105,7 @@ public class YtDlpService
     {
         Directory.CreateDirectory(outputDir);
 
-        var outputTemplate = Path.Combine(outputDir, "%(title).80B [%(id)s].%(ext)s");
+        var outputTemplate = Path.Combine(outputDir, "%(title).80B [%(id)s] [tube.yefeblgn.net].%(ext)s");
 
         var args = new List<string>
         {
